@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Doc Generator v3 — Suno AI Prompt Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0e0f;--bg2:#141416;--bg3:#1a1a1d;--border:#2a2a2e;--border2:#3a3a3f;--text:#e8e6e0;--text2:#8a8880;--text3:#5a5856;--accent:#c8a96e;--accent2:#8a6f3e;--red:#c85a4a;--green:#4a8a6a;--mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans)}
+body{min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.5rem 2.5rem;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:baseline;gap:1rem;margin-bottom:0.2rem}
+.logo{font-family:var(--mono);font-size:1.1rem;color:var(--accent);letter-spacing:0.05em}
+.logo span{color:var(--text3)}
+.tagline{font-size:0.7rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase}
+.version{font-family:var(--mono);font-size:0.65rem;color:var(--accent2);margin-left:auto}
+.main{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 70px)}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:1.25rem;position:sticky;top:70px;height:calc(100vh - 70px);overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.nav-label{font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.6rem;margin-top:1rem;font-family:var(--mono)}
+.nav-label:first-child{margin-top:0}
+.nav-item{display:block;padding:0.45rem 0.75rem;border-radius:4px;cursor:pointer;font-size:0.82rem;color:var(--text2);margin-bottom:2px;transition:all 0.12s;border:1px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--accent);background:var(--bg3);border-color:var(--border)}
+.content{padding:1.75rem 2.5rem;overflow-y:auto}
+.panel{display:none}
+.panel.active{display:block}
+.section-title{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.2rem;margin-bottom:0.9rem}
+.field-group{margin-bottom:0.9rem}
+.field-group:last-child{margin-bottom:0}
+.field-label{font-size:0.72rem;color:var(--text3);margin-bottom:0.35rem;letter-spacing:0.03em;font-family:var(--mono)}
+select,input[type=text],textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:0.78rem;padding:0.45rem 0.7rem;outline:none;transition:border-color 0.12s;-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a5856' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.6rem center;padding-right:1.8rem}
+select:focus,input:focus,textarea:focus{border-color:var(--accent2)}
+textarea{resize:vertical;min-height:55px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.7rem}
+.pill-group{display:flex;flex-wrap:wrap;gap:5px;margin-top:0.4rem}
+.pill{font-size:0.68rem;font-family:var(--mono);padding:3px 9px;border-radius:3px;cursor:pointer;background:var(--bg3);color:var(--text3);border:1px solid var(--border);transition:all 0.1s;letter-spacing:0.02em}
+.pill:hover{color:var(--text2);border-color:var(--border2)}
+.pill.active{background:var(--accent2);color:var(--accent);border-color:var(--accent2)}
+.pill.excl.active{background:#3a1a16;color:var(--red);border-color:#5a2a22}
+.genre-bar{display:flex;flex-wrap:wrap;gap:5px}
+.disc-grid{display:grid;grid-template-columns:55px 1fr 1fr;gap:7px;align-items:start;margin-bottom:7px}
+.disc-tag{font-family:var(--mono);font-size:0.72rem;color:var(--accent);padding-top:8px}
+.disc-fixed{font-family:var(--mono);font-size:0.72rem;color:var(--text3);padding:0.45rem 0.7rem;background:var(--bg3);border:1px solid var(--border);border-radius:4px;grid-column:span 2}
+.struct-item{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.72rem;color:var(--text2)}
+.struct-item input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.btn-generate{width:100%;padding:0.85rem;background:var(--accent);color:var(--bg);font-family:var(--mono);font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;transition:opacity 0.15s;margin-top:0.9rem}
+.btn-generate:hover{opacity:0.85}
+.output-section{margin-top:1.5rem}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.45rem}
+.output-label{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent)}
+.output-meta{display:flex;align-items:center;gap:0.65rem}
+.char-count{font-family:var(--mono);font-size:0.65rem;color:var(--text3)}
+.char-count.warn{color:#c8a040}
+.char-count.over{color:var(--red)}
+.btn-copy{font-family:var(--mono);font-size:0.65rem;padding:2px 9px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text2);cursor:pointer;transition:all 0.1s;letter-spacing:0.03em}
+.btn-copy:hover{background:var(--border);color:var(--text)}
+.btn-copy.copied{color:var(--green);border-color:var(--green)}
+.output-area{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:0.9rem;font-family:var(--mono);font-size:0.72rem;line-height:1.6;color:var(--text2);white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;cursor:text}
+.output-area::-webkit-scrollbar{width:3px}
+.output-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.hint{font-size:0.68rem;color:var(--text3);margin-top:0.3rem;line-height:1.4}
+.db-stat{font-family:var(--mono);font-size:0.6rem;color:var(--text3);margin-top:0.75rem;text-align:right}
+.credits{padding:1rem 2.5rem;border-top:1px solid var(--border);font-family:var(--mono);font-size:0.6rem;color:var(--text3);letter-spacing:0.04em;display:flex;gap:2rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div class="logo">SESSION<span>_</span>DOC<span>.</span>GEN</div>
+    <div class="tagline">Suno AI — Studio Metadata Prompt Engineering</div>
+    <div class="version">v3.0</div>
+  </div>
+</div>
+<div class="main">
+  <div class="sidebar">
+    <div class="nav-label">Build</div>
+    <div class="nav-item active" onclick="showPanel('genre',this)">01 — Genre</div>
+    <div class="nav-item" onclick="showPanel('session',this)">02 — Session</div>
+    <div class="nav-item" onclick="showPanel('discs',this)">03 — Discs</div>
+    <div class="nav-item" onclick="showPanel('hook',this)">04 — Hook & Texture</div>
+    <div class="nav-item" onclick="showPanel('structure',this)">05 — Structure</div>
+    <div class="nav-item" onclick="showPanel('exclusions',this)">06 — Exclusions</div>
+    <div class="nav-label">Output</div>
+    <div class="nav-item" onclick="showPanel('output',this)">Generate & Export</div>
+    <div class="nav-label">Info</div>
+    <div style="font-size:0.67rem;color:var(--text3);line-height:1.6;font-family:var(--mono);padding:0 0.25rem">
+      Session Doc Prompting uses real studio metadata to pattern-match Suno training data.<br><br>
+      Technique: DJ Dogman<br>
+      Tool: Spankie0001<br><br>
+      Style limit: 1000 chars<br>
+      Lyrics limit: ~3000 chars
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- GENRE -->
+    <div class="panel active" id="panel-genre">
+      <div class="section-title">// genre filter — 32 genres</div>
+      <div class="card">
+        <div class="field-label">Select primary genre — all dropdowns filter to match</div>
+        <div class="genre-bar" id="genre-pills" style="margin-top:0.5rem"></div>
+        <div class="hint" style="margin-top:0.75rem">Genre selection filters studios, engineers, gear, sample sources to contextually appropriate options. All data is drawn from real recording history.</div>
+        <div class="db-stat" id="db-stat"></div>
+      </div>
+    </div>
+
+    <!-- SESSION -->
+    <div class="panel" id="panel-session">
+      <div class="section-title">// session & gear</div>
+      <div class="card">
+        <div class="field-label">Studio</div>
+        <div class="grid2" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Primary room</div><select id="studio-primary"></select></div>
+          <div class="field-group"><div class="field-label">Secondary room (optional)</div><select id="studio-secondary"></select></div>
+        </div>
+        <div class="grid2">
+          <div class="field-group"><div class="field-label">Engineer</div><select id="engineer"></select></div>
+          <div class="field-group"><div class="field-label">Producer / assistant</div><select id="producer"></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-label">Signal chain</div>
+        <div class="grid3" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Console</div><select id="gear-console"></select></div>
+          <div class="field-group"><div class="field-label">Tape machine</div><select id="gear-tape"></select></div>
+          <div class="field-group"><div class="field-label">Preamp</div><select id="gear-preamp"></select></div>
+        </div>
+        <div class="grid3" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Bass instrument</div><select id="gear-bass"></select></div>
+          <div class="field-group"><div class="field-label">Amplifier</div><select id="gear-amp"></select></div>
+          <div class="field-group"><div class="field-label">Keys / synth</div><select id="gear-keys"></select></div>
+        </div>
+        <div class="grid3" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Reverb unit</div><select id="gear-reverb"></select></div>
+          <div class="field-group"><div class="field-label">Delay unit</div><select id="gear-delay"></select></div>
+          <div class="field-group"><div class="field-label">Modulation</div><select id="gear-mod"></select></div>
+        </div>
+        <div class="grid3">
+          <div class="field-group"><div class="field-label">Drive / distortion</div><select id="gear-drive"></select></div>
+          <div class="field-group"><div class="field-label">Compression</div><select id="gear-comp"></select></div>
+          <div class="field-group"><div class="field-label">Drum machine</div><select id="gear-drum"></select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISCS -->
+    <div class="panel" id="panel-discs">
+      <div class="section-title">// disc map — sample loadout</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:0.9rem">Disc A is fixed as the vocal retrieval mechanism. Disc E is the scratch/turntable layer configured below.</div>
+        <div id="disc-rows"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.9rem">
+          <div class="field-label" style="margin-bottom:0">Disc E — Turntable / scratch layer</div>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:var(--mono);font-size:0.72rem;color:var(--text2)">
+            <input type="checkbox" id="disc-e-enabled" checked onchange="toggleDiscE()" style="width:13px;height:13px;accent-color:var(--accent);cursor:pointer">enabled
+          </label>
+        </div>
+        <div id="disc-e-config">
+          <div class="field-group" style="margin-bottom:0.9rem">
+            <div class="field-label">Scratch vocabulary style</div>
+            <select id="disc-e-style" onchange="updateScratchStyle()">
+              <option value="wutang">Wu-Tang / Hip-Hop DJ</option>
+              <option value="industrial">Industrial / Techno Cut</option>
+              <option value="jazz">Jazz / Bebop Turntablism</option>
+              <option value="dub">Reggae / Dub Selector</option>
+              <option value="idm">IDM / Glitch Edit</option>
+              <option value="hiphop">Golden Era Hip-Hop</option>
+              <option value="custom">Custom — manual selection</option>
+            </select>
+          </div>
+          <div class="field-label" style="margin-bottom:0.4rem">Techniques (edit freely)</div>
+          <div class="pill-group" id="scratch-pills"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOOK -->
+    <div class="panel" id="panel-hook">
+      <div class="section-title">// hook, texture & concept</div>
+      <div class="card">
+        <div class="field-label">Harmonic / melodic character</div>
+        <div class="grid2" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Scale / mode</div><select id="hook-scale"></select></div>
+          <div class="field-group"><div class="field-label">Interval movement</div><select id="hook-interval"></select></div>
+        </div>
+        <div class="grid2" style="margin-bottom:0.7rem">
+          <div class="field-group"><div class="field-label">Call character</div><select id="hook-call"></select></div>
+          <div class="field-group"><div class="field-label">Response character</div><select id="hook-response"></select></div>
+        </div>
+        <div class="field-group"><div class="field-label">Tension resolution</div><select id="hook-tension"></select></div>
+      </div>
+      <div class="card">
+        <div class="field-label">Texture layers (multi-select)</div>
+        <div class="pill-group" id="texture-pills"></div>
+      </div>
+      <div class="card">
+        <div class="field-label">Edit bed — continuous texture (multi-select)</div>
+        <div class="pill-group" id="edit-pills"></div>
+      </div>
+      <div class="card">
+        <div class="grid2">
+          <div class="field-group"><div class="field-label">Track title</div><input type="text" id="title-input" placeholder="e.g. Hurricane"></div>
+          <div class="field-group"><div class="field-label">Theme / concept</div><input type="text" id="theme-input" placeholder="e.g. storm surge, barometric collapse, island dread"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STRUCTURE -->
+    <div class="panel" id="panel-structure">
+      <div class="section-title">// arrangement structure</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:0.9rem">Checked sections encoded as 0% lyrics routing blocks in the lyrics field. Note: Suno coherence typically holds for 2-2.5 minutes — front-load important sections.</div>
+        <div id="structure-checks"></div>
+      </div>
+    </div>
+
+    <!-- EXCLUSIONS -->
+    <div class="panel" id="panel-exclusions">
+      <div class="section-title">// exclusions</div>
+      <div class="card"><div class="field-label">Genre exclusions</div><div class="pill-group" id="excl-genre-pills"></div></div>
+      <div class="card"><div class="field-label">Mood / feel exclusions</div><div class="pill-group" id="excl-mood-pills"></div></div>
+      <div class="card"><div class="field-label">Instrument exclusions</div><div class="pill-group" id="excl-inst-pills"></div></div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="panel" id="panel-output">
+      <div class="section-title">// generate & export</div>
+      <button class="btn-generate" onclick="generate()">▶ Generate Session Doc</button>
+      <div class="output-section" id="output-area" style="display:none">
+        <div class="output-header">
+          <div class="output-label">Style prompt</div>
+          <div class="output-meta"><div class="char-count" id="style-count"></div><button class="btn-copy" id="copy-style" onclick="copyOut('style-out','copy-style')">copy</button></div>
+        </div>
+        <div class="output-area" id="style-out"></div>
+        <div class="output-header" style="margin-top:1.25rem">
+          <div class="output-label">Lyrics field (routing map)</div>
+          <div class="output-meta"><div class="char-count" id="lyrics-count"></div><button class="btn-copy" id="copy-lyrics" onclick="copyOut('lyrics-out','copy-lyrics')">copy</button></div>
+        </div>
+        <div class="output-area" id="lyrics-out"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="credits">
+  <span>Session Doc Generator v3.0</span>
+  <span>Technique: DJ Dogman (Suno)</span>
+  <span>Tool: Spankie0001</span>
+  <span>32 genres | 900+ database entries</span>
+  <span>Style limit: 1000 chars — Lyrics limit: ~3000 chars</span>
+</div>
+
+<script>
+const DB = {
+genres:["Dub / Reggae","Industrial","Grunge","Jazz-Rap","Hip-Hop","Blues","Soul / R&B","Funk","Electronic","Ambient","Metal","Post-Rock","Psychedelic","Folk","Classical / Orchestral","Drum & Bass","Punk","Shoegaze","Dark Folk","Bardcore / Medieval","Hyperpop","Phonk","Afrobeats / Amapiano","Lo-Fi Hip-Hop","Synthwave / Retrowave","Nu-Metal","Indie Electronic / Dream Pop","Latin Trap / Reggaeton","IDM / Glitch","Gospel / Sacred","Noise Rock / No Wave","Jazz (Classic / Hard Bop)"],
+
+studios:{
+"Dub / Reggae":[{name:"Black_Ark_Studios_Kingston_1976",label:"Black Ark Studios — Kingston 1976"},{name:"Channel_One_Studio_Kingston_1975",label:"Channel One — Kingston 1975"},{name:"Harry_J_Studio_Kingston_1970",label:"Harry J Studio — Kingston 1970"},{name:"Randy_Studio_Kingston_1968",label:"Randy's Studio — Kingston 1968"},{name:"Tuff_Gong_Studio_Kingston_1987",label:"Tuff Gong — Kingston 1987"},{name:"Joe_Gibbs_Studio_Kingston_1978",label:"Joe Gibbs Studio — Kingston 1978"},{name:"Compass_Point_Studios_Nassau_1980",label:"Compass Point — Nassau 1980"}],
+"Industrial":[{name:"Nothing_Studios_New_Orleans_2004",label:"Nothing Studios — New Orleans 2004"},{name:"Axis_Studios_Cleveland_1989",label:"Axis Studios — Cleveland 1989"},{name:"Pachyderm_Studio_Minnesota_1993",label:"Pachyderm Studio — Minnesota 1993"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Triclops_Sound_Studios_Atlanta_2001",label:"Triclops Sound — Atlanta 2001"},{name:"Britannia_Row_Studios_London_1979",label:"Britannia Row — London 1979"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"}],
+"Grunge":[{name:"London_Bridge_Studio_Seattle_1991",label:"London Bridge Studio — Seattle 1991"},{name:"Bad_Animals_Studio_Seattle_1992",label:"Bad Animals Studio — Seattle 1992"},{name:"Reciprocal_Recording_Seattle_1989",label:"Reciprocal Recording — Seattle 1989"},{name:"Pachyderm_Studio_Minnesota_1993",label:"Pachyderm Studio — Minnesota 1993"},{name:"Robert_Lang_Studios_Seattle_1995",label:"Robert Lang Studios — Seattle 1995"},{name:"Sound_City_Studios_LA_1991",label:"Sound City Studios — LA 1991"},{name:"Laundry_Room_Studio_Seattle_1992",label:"Laundry Room Studio — Seattle 1992"}],
+"Jazz-Rap":[{name:"Van_Gelder_Studio_Englewood_Cliffs_1963",label:"Van Gelder Studio — Englewood Cliffs 1963"},{name:"D&D_Recording_NYC_1994",label:"D&D Recording — NYC 1994"},{name:"Battery_Studios_NYC_1996",label:"Battery Studios — NYC 1996"},{name:"Clinton_Recording_NYC_1993",label:"Clinton Recording — NYC 1993"},{name:"Calliope_Studios_NYC_1991",label:"Calliope Studios — NYC 1991"},{name:"Power_Station_NYC_1977",label:"Power Station — NYC 1977"},{name:"Electric_Lady_Studios_NYC_1970",label:"Electric Lady Studios — NYC 1970"}],
+"Hip-Hop":[{name:"Chung_King_Studios_NYC_1988",label:"Chung King Studios — NYC 1988"},{name:"D&D_Recording_NYC_1994",label:"D&D Recording — NYC 1994"},{name:"Battery_Studios_NYC_1996",label:"Battery Studios — NYC 1996"},{name:"Larrabee_Sound_LA_1995",label:"Larrabee Sound — LA 1995"},{name:"King_Studio_Tokyo_2003",label:"King Studio — Tokyo 2003"},{name:"Greene_Street_Recording_NYC_1987",label:"Greene Street Recording — NYC 1987"},{name:"Quad_Recording_Studios_NYC_1992",label:"Quad Recording — NYC 1992"},{name:"Chalice_Recording_LA_1994",label:"Chalice Recording — LA 1994"}],
+"Blues":[{name:"Chess_Records_Studio_Chicago_1958",label:"Chess Records — Chicago 1958"},{name:"Sun_Studio_Memphis_1955",label:"Sun Studio — Memphis 1955"},{name:"Muscle_Shoals_Sound_Studio_Alabama_1969",label:"Muscle Shoals Sound — Alabama 1969"},{name:"Cosimo_Studio_New_Orleans_1962",label:"Cosimo Studio — New Orleans 1962"},{name:"FAME_Studios_Muscle_Shoals_1963",label:"FAME Studios — Muscle Shoals 1963"},{name:"Criteria_Studios_Miami_1972",label:"Criteria Studios — Miami 1972"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"}],
+"Soul / R&B":[{name:"Stax_Studio_Memphis_1967",label:"Stax Studio — Memphis 1967"},{name:"Muscle_Shoals_Sound_Studio_Alabama_1969",label:"Muscle Shoals Sound — Alabama 1969"},{name:"Hitsville_USA_Detroit_1963",label:"Hitsville USA — Detroit 1963"},{name:"American_Sound_Studio_Memphis_1968",label:"American Sound — Memphis 1968"},{name:"Sigma_Sound_Studios_Philadelphia_1973",label:"Sigma Sound — Philadelphia 1973"},{name:"FAME_Studios_Muscle_Shoals_1963",label:"FAME Studios — Muscle Shoals 1963"},{name:"Criteria_Studios_Miami_1972",label:"Criteria Studios — Miami 1972"},{name:"Power_Station_NYC_1977",label:"Power Station — NYC 1977"}],
+"Funk":[{name:"Sly_Stone_Home_Studio_Bel_Air_1971",label:"Sly Stone Home Studio — Bel Air 1971"},{name:"Ultrasonic_Studios_New_Orleans_1974",label:"Ultrasonic Studios — New Orleans 1974"},{name:"Sigma_Sound_Studios_Philadelphia_1973",label:"Sigma Sound — Philadelphia 1973"},{name:"United_Sound_Systems_Detroit_1972",label:"United Sound Systems — Detroit 1972"},{name:"Record_Plant_LA_1976",label:"Record Plant — LA 1976"},{name:"Electric_Lady_Studios_NYC_1970",label:"Electric Lady Studios — NYC 1970"},{name:"Paisley_Park_Studios_Minnesota_1987",label:"Paisley Park Studios — Minnesota 1987"}],
+"Electronic":[{name:"Kling_Klang_Studio_Dusseldorf_1974",label:"Kling Klang Studio — Düsseldorf 1974"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"},{name:"Genetic_Sound_London_1981",label:"Genetic Sound — London 1981"},{name:"Britannia_Row_Studios_London_1979",label:"Britannia Row — London 1979"},{name:"Chateau_Herouville_France_1972",label:"Château Hérouville — France 1972"},{name:"Musicland_Studios_Munich_1974",label:"Musicland Studios — Munich 1974"}],
+"Ambient":[{name:"Chateau_Herouville_France_1973",label:"Château Hérouville — France 1973"},{name:"RAK_Studios_London_1975",label:"RAK Studios — London 1975"},{name:"Compass_Point_Studios_Nassau_1980",label:"Compass Point — Nassau 1980"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Real_World_Studios_Bath_1993",label:"Real World Studios — Bath 1993"},{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"},{name:"Le_Studio_Quebec_1974",label:"Le Studio — Quebec 1974"}],
+"Metal":[{name:"One_on_One_Recording_LA_1991",label:"One on One Recording — LA 1991"},{name:"Enterprise_Studios_Burbank_1991",label:"Enterprise Studios — Burbank 1991"},{name:"Morrisound_Recording_Tampa_1990",label:"Morrisound Recording — Tampa 1990"},{name:"Criteria_Studios_Miami_1983",label:"Criteria Studios — Miami 1983"},{name:"Sound_City_Studios_LA_1992",label:"Sound City Studios — LA 1992"},{name:"Musicland_Studios_Munich_1974",label:"Musicland Studios — Munich 1974"},{name:"Rockfield_Studio_Wales_1974",label:"Rockfield Studio — Wales 1974"},{name:"Puk_Recording_Studios_Denmark_1978",label:"Puk Recording Studios — Denmark 1978"}],
+"Post-Rock":[{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"},{name:"Soma_Studios_Chicago_1998",label:"Soma Studios — Chicago 1998"},{name:"Sonic_Ranch_Texas_2004",label:"Sonic Ranch — Texas 2004"},{name:"Tarquin_Studios_Connecticut_2001",label:"Tarquin Studios — Connecticut 2001"},{name:"Big_Sky_Recording_Montana_2003",label:"Big Sky Recording — Montana 2003"},{name:"Real_World_Studios_Bath_1993",label:"Real World Studios — Bath 1993"},{name:"Ocean_Way_Studios_LA_1969",label:"Ocean Way Studios — LA 1969"}],
+"Psychedelic":[{name:"Sunset_Sound_LA_1967",label:"Sunset Sound — LA 1967"},{name:"Abbey_Road_Studios_London_1967",label:"Abbey Road Studios — London 1967"},{name:"Olympic_Studios_London_1968",label:"Olympic Studios — London 1968"},{name:"Wally_Heider_Studios_LA_1969",label:"Wally Heider Studios — LA 1969"},{name:"Trident_Studios_London_1971",label:"Trident Studios — London 1971"},{name:"Electric_Lady_Studios_NYC_1970",label:"Electric Lady Studios — NYC 1970"},{name:"Chateau_Herouville_France_1972",label:"Château Hérouville — France 1972"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"}],
+"Folk":[{name:"Columbia_Studio_A_Nashville_1966",label:"Columbia Studio A — Nashville 1966"},{name:"Witchseason_Productions_London_1969",label:"Witchseason Productions — London 1969"},{name:"Columbia_30th_Street_Studio_NYC_1961",label:"Columbia 30th Street Studio — NYC 1961"},{name:"Sound_80_Minneapolis_1975",label:"Sound 80 — Minneapolis 1975"},{name:"Elektra_Sound_Recorders_LA_1972",label:"Elektra Sound Recorders — LA 1972"},{name:"Le_Studio_Quebec_1974",label:"Le Studio — Quebec 1974"},{name:"Ocean_Way_Studios_LA_1969",label:"Ocean Way Studios — LA 1969"}],
+"Classical / Orchestral":[{name:"Abbey_Road_Studios_London_1962",label:"Abbey Road Studios — London 1962"},{name:"Avatar_Studios_NYC_1998",label:"Avatar Studios — NYC 1998"},{name:"AIR_Lyndhurst_Hall_London_1993",label:"AIR Lyndhurst Hall — London 1993"},{name:"Sear_Sound_NYC_2001",label:"Sear Sound — NYC 2001"},{name:"Teldec_Studio_Berlin_1985",label:"Teldec Studio — Berlin 1985"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"},{name:"Ocean_Way_Studios_LA_1969",label:"Ocean Way Studios — LA 1969"}],
+"Drum & Bass":[{name:"Metalheadz_Studio_London_1995",label:"Metalheadz Studio — London 1995"},{name:"SOUR_Studio_London_1997",label:"SOUR Studio — London 1997"},{name:"Strongroom_Studios_London_1999",label:"Strongroom Studios — London 1999"},{name:"The_Exchange_London_2002",label:"The Exchange — London 2002"},{name:"Miloco_Studios_London_2000",label:"Miloco Studios — London 2000"},{name:"Genetic_Sound_London_1981",label:"Genetic Sound — London 1981"},{name:"Britannia_Row_Studios_London_1979",label:"Britannia Row — London 1979"}],
+"Punk":[{name:"Wessex_Sound_Studios_London_1976",label:"Wessex Sound Studios — London 1976"},{name:"Manticore_Studios_London_1977",label:"Manticore Studios — London 1977"},{name:"Track_Studios_NYC_1977",label:"Track Studios — NYC 1977"},{name:"Media_Sound_NYC_1976",label:"Media Sound — NYC 1976"},{name:"Blank_Generation_NYC_1977",label:"Blank Generation — NYC 1977"},{name:"Power_Station_NYC_1977",label:"Power Station — NYC 1977"},{name:"Electric_Lady_Studios_NYC_1970",label:"Electric Lady Studios — NYC 1970"}],
+"Shoegaze":[{name:"RAK_Studios_London_1991",label:"RAK Studios — London 1991"},{name:"Blackwing_Studios_London_1989",label:"Blackwing Studios — London 1989"},{name:"Matrix_Studios_London_1992",label:"Matrix Studios — London 1992"},{name:"Bark_Studios_London_1993",label:"Bark Studios — London 1993"},{name:"Britannia_Row_Studios_London_1990",label:"Britannia Row — London 1990"},{name:"Trident_Studios_London_1971",label:"Trident Studios — London 1971"},{name:"Olympic_Studios_London_1968",label:"Olympic Studios — London 1968"}],
+"Dark Folk":[{name:"Chateau_Herouville_France_1973",label:"Château Hérouville — France 1973"},{name:"Real_World_Studios_Bath_1993",label:"Real World Studios — Bath 1993"},{name:"Witchseason_Productions_London_1969",label:"Witchseason Productions — London 1969"},{name:"Southern_Studio_London_1983",label:"Southern Studio — London 1983"},{name:"Rockfield_Studio_Wales_1974",label:"Rockfield Studio — Wales 1974"},{name:"Puk_Recording_Studios_Denmark_1978",label:"Puk Recording Studios — Denmark 1978"},{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"}],
+"Bardcore / Medieval":[{name:"AIR_Lyndhurst_Hall_London_1993",label:"AIR Lyndhurst Hall — London 1993"},{name:"Abbey_Road_Studios_London_1962",label:"Abbey Road Studios — London 1962"},{name:"Real_World_Studios_Bath_1993",label:"Real World Studios — Bath 1993"},{name:"Rockfield_Studio_Wales_1974",label:"Rockfield Studio — Wales 1974"},{name:"Teldec_Studio_Berlin_1985",label:"Teldec Studio — Berlin 1985"},{name:"Ocean_Way_Studios_LA_1969",label:"Ocean Way Studios — LA 1969"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"}],
+"Hyperpop":[{name:"PC_Music_London_2013",label:"PC Music — London 2013"},{name:"Sanctuary_Studios_London_2018",label:"Sanctuary Studios — London 2018"},{name:"Miloco_Studios_London_2000",label:"Miloco Studios — London 2000"},{name:"Metropolis_Studios_London_2019",label:"Metropolis Studios — London 2019"},{name:"Strongroom_Studios_London_1999",label:"Strongroom Studios — London 1999"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"}],
+"Phonk":[{name:"Easley_McCain_Recording_Memphis_1994",label:"Easley McCain Recording — Memphis 1994"},{name:"Ardent_Studios_Memphis_1971",label:"Ardent Studios — Memphis 1971"},{name:"Chalice_Recording_LA_1994",label:"Chalice Recording — LA 1994"},{name:"Quad_Recording_Studios_NYC_1992",label:"Quad Recording — NYC 1992"},{name:"D&D_Recording_NYC_1994",label:"D&D Recording — NYC 1994"},{name:"Chung_King_Studios_NYC_1988",label:"Chung King Studios — NYC 1988"},{name:"Larrabee_Sound_LA_1995",label:"Larrabee Sound — LA 1995"}],
+"Afrobeats / Amapiano":[{name:"Temple_Music_Studio_Lagos_2015",label:"Temple Music Studio — Lagos 2015"},{name:"Abbey_Road_Studios_London_2018",label:"Abbey Road Studios — London 2018"},{name:"Maad_City_Studios_Johannesburg_2016",label:"Maad City Studios — Johannesburg 2016"},{name:"Mutek_Studios_Accra_2018",label:"Mutek Studios — Accra 2018"},{name:"Chocolate_City_Studios_Lagos_2012",label:"Chocolate City Studios — Lagos 2012"},{name:"Miloco_Studios_London_2000",label:"Miloco Studios — London 2000"},{name:"Compass_Point_Studios_Nassau_1980",label:"Compass Point — Nassau 1980"}],
+"Lo-Fi Hip-Hop":[{name:"Bedroom_Studio_Home_Recording_2018",label:"Bedroom Studio — Home Recording 2018"},{name:"D&D_Recording_NYC_1994",label:"D&D Recording — NYC 1994"},{name:"Greene_Street_Recording_NYC_1987",label:"Greene Street Recording — NYC 1987"},{name:"Chung_King_Studios_NYC_1988",label:"Chung King Studios — NYC 1988"},{name:"Van_Gelder_Studio_Englewood_Cliffs_1963",label:"Van Gelder Studio — Englewood Cliffs 1963"},{name:"Soma_Studios_Chicago_1998",label:"Soma Studios — Chicago 1998"},{name:"Calliope_Studios_NYC_1991",label:"Calliope Studios — NYC 1991"}],
+"Synthwave / Retrowave":[{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Kling_Klang_Studio_Dusseldorf_1974",label:"Kling Klang Studio — Düsseldorf 1974"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"},{name:"Chateau_Herouville_France_1972",label:"Château Hérouville — France 1972"},{name:"Musicland_Studios_Munich_1974",label:"Musicland Studios — Munich 1974"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"},{name:"Compass_Point_Studios_Nassau_1980",label:"Compass Point — Nassau 1980"}],
+"Nu-Metal":[{name:"NRG_Recording_Studios_LA_2000",label:"NRG Recording Studios — LA 2000"},{name:"Enterprise_Studios_Burbank_1991",label:"Enterprise Studios — Burbank 1991"},{name:"Sound_City_Studios_LA_1992",label:"Sound City Studios — LA 1992"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"},{name:"One_on_One_Recording_LA_1991",label:"One on One Recording — LA 1991"},{name:"Larrabee_Sound_LA_1995",label:"Larrabee Sound — LA 1995"},{name:"Pachyderm_Studio_Minnesota_1993",label:"Pachyderm Studio — Minnesota 1993"}],
+"Indie Electronic / Dream Pop":[{name:"RAK_Studios_London_1991",label:"RAK Studios — London 1991"},{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"},{name:"Soma_Studios_Chicago_1998",label:"Soma Studios — Chicago 1998"},{name:"Miloco_Studios_London_2000",label:"Miloco Studios — London 2000"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Matrix_Studios_London_1992",label:"Matrix Studios — London 1992"},{name:"Compass_Point_Studios_Nassau_1980",label:"Compass Point — Nassau 1980"}],
+"Latin Trap / Reggaeton":[{name:"White_Room_Studio_San_Juan_2010",label:"White Room Studio — San Juan 2010"},{name:"Pina_Records_Studio_Miami_2012",label:"Pina Records Studio — Miami 2012"},{name:"Chalice_Recording_LA_1994",label:"Chalice Recording — LA 1994"},{name:"Larrabee_Sound_LA_1995",label:"Larrabee Sound — LA 1995"},{name:"D&D_Recording_NYC_1994",label:"D&D Recording — NYC 1994"},{name:"Quad_Recording_Studios_NYC_1992",label:"Quad Recording — NYC 1992"},{name:"Westlake_Audio_LA_1983",label:"Westlake Audio — LA 1983"}],
+"IDM / Glitch":[{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Soma_Studios_Chicago_1998",label:"Soma Studios — Chicago 1998"},{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"},{name:"Kling_Klang_Studio_Dusseldorf_1974",label:"Kling Klang Studio — Düsseldorf 1974"},{name:"Metalheadz_Studio_London_1995",label:"Metalheadz Studio — London 1995"},{name:"Real_World_Studios_Bath_1993",label:"Real World Studios — Bath 1993"},{name:"Britannia_Row_Studios_London_1979",label:"Britannia Row — London 1979"}],
+"Gospel / Sacred":[{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"},{name:"Ocean_Way_Studios_LA_1969",label:"Ocean Way Studios — LA 1969"},{name:"Muscle_Shoals_Sound_Studio_Alabama_1969",label:"Muscle Shoals Sound — Alabama 1969"},{name:"Criteria_Studios_Miami_1972",label:"Criteria Studios — Miami 1972"},{name:"Stax_Studio_Memphis_1967",label:"Stax Studio — Memphis 1967"},{name:"AIR_Lyndhurst_Hall_London_1993",label:"AIR Lyndhurst Hall — London 1993"},{name:"Hitsville_USA_Detroit_1963",label:"Hitsville USA — Detroit 1963"}],
+"Noise Rock / No Wave":[{name:"Electrical_Audio_Chicago_1997",label:"Electrical Audio — Chicago 1997"},{name:"Track_Studios_NYC_1977",label:"Track Studios — NYC 1977"},{name:"Power_Station_NYC_1977",label:"Power Station — NYC 1977"},{name:"Electric_Lady_Studios_NYC_1970",label:"Electric Lady Studios — NYC 1970"},{name:"Media_Sound_NYC_1976",label:"Media Sound — NYC 1976"},{name:"Hansa_Studios_Berlin_1977",label:"Hansa Studios — Berlin 1977"},{name:"Pachyderm_Studio_Minnesota_1993",label:"Pachyderm Studio — Minnesota 1993"}],
+"Jazz (Classic / Hard Bop)":[{name:"Van_Gelder_Studio_Englewood_Cliffs_1963",label:"Van Gelder Studio — Englewood Cliffs 1963"},{name:"Columbia_30th_Street_Studio_NYC_1961",label:"Columbia 30th Street Studio — NYC 1961"},{name:"Capitol_Studios_Hollywood_1965",label:"Capitol Studios — Hollywood 1965"},{name:"Atlantic_Studios_NYC_1960",label:"Atlantic Studios — NYC 1960"},{name:"Reeves_Sound_Studios_NYC_1957",label:"Reeves Sound Studios — NYC 1957"},{name:"Plaza_Sound_NYC_1958",label:"Plaza Sound — NYC 1958"},{name:"Fine_Recording_NYC_1955",label:"Fine Recording — NYC 1955"}]
+},
+
+engineers:{
+"Dub / Reggae":["King_Tubby","Lee_Scratch_Perry","Errol_Thompson","Scientist","Bunny_Lee","Dennis_Bovell","Sly_Dunbar"],
+"Industrial":["Alan_Moulder","Trent_Reznor","Steve_Albini","Flood","Mark_Walk","John_Fryer","Tony_Visconti"],
+"Grunge":["Jack_Endino","Butch_Vig","Adam_Kasper","Brendan_OBrien","Barrett_Jones","Terry_Date","Bob_Clearmountain"],
+"Jazz-Rap":["DJ_Premier","Pete_Rock","Rudy_Van_Gelder","Large_Professor","Q-Tip","Ali_Shaheed_Muhammad","Tom_Dowd"],
+"Hip-Hop":["DJ_Premier","RZA","Dr_Dre","Large_Professor","Pete_Rock","Marley_Marl","Hank_Shocklee","Young_Guru"],
+"Blues":["Willie_Dixon","Leonard_Chess","Sam_Phillips","Tom_Dowd","Cosimo_Matassa","Jim_Dickinson","Bill_Putnam"],
+"Soul / R&B":["Tom_Dowd","Al_Bell","Jim_Stewart","Norman_Whitfield","Thom_Bell","Kenny_Gamble","Al_Schmitt"],
+"Funk":["George_Clinton","Bootsy_Collins","Bernie_Worrell","Sly_Stone","Fred_Wesley","Roger_Troutman","Tom_Dowd"],
+"Electronic":["Conny_Plank","Brian_Eno","Daniel_Miller","Martin_Hannett","Giorgio_Moroder","Klaus_Schulze","Tony_Visconti"],
+"Ambient":["Brian_Eno","Harold_Budd","Daniel_Lanois","Flood","Mark_Birnbaum","Roger_Eno","Nigel_Godrich"],
+"Metal":["Terry_Date","Colin_Richardson","Andy_Sneap","Randy_Burns","Scott_Burns","Alex_Perialas","Reinhold_Mack"],
+"Post-Rock":["Steve_Albini","John_McEntire","Tchad_Blake","Jim_O_Rourke","Craig_Schumacher","Dave_Fridmann","Nigel_Godrich"],
+"Psychedelic":["Bruce_Botnick","Glyn_Johns","Norman_Smith","Joe_Boyd","Tom_Wilson","Alan_Parsons","Geoff_Emerick"],
+"Folk":["Bob_Johnston","John_Simon","Joe_Boyd","Elliott_Mazer","Paul_Rothchild","Norbert_Putnam","Glyn_Johns"],
+"Classical / Orchestral":["Christopher_Bishop","Andrew_Cornall","John_Dunkerley","Michael_Fine","Jay_David_Saks","Marc_Aubort","Al_Schmitt"],
+"Drum & Bass":["Goldie","LTJ_Bukem","Dillinja","Andy_C","Photek","Roni_Size","Mark_Spike_Stent"],
+"Punk":["Chris_Thomas","Bill_Price","Craig_Leon","Shel_Talmy","Alan_Winstanley","Vic_Maile","Bob_Clearmountain"],
+"Shoegaze":["Alan_Moulder","Kevin_Shields_Loveless_era","John_Fryer","Mark_Freegard","Stephen_Street","Youth","Dave_Fridmann"],
+"Dark Folk":["Joe_Boyd","John_Wood","Steve_Albini","Youth","Craig_Schumacher","Martin_Hannett","Brian_Eno"],
+"Bardcore / Medieval":["Christopher_Bishop","Andrew_Cornall","John_Dunkerley","Michael_Fine","Youth","Brian_Eno","Nigel_Godrich"],
+"Hyperpop":["A.G._Cook","SOPHIE_production_style","Danny_L_Harle","Finn_Keane","Mark_Spike_Stent","Flood","Daniel_Miller"],
+"Phonk":["DJ_Smokey","Three_6_Mafia_production_style","DJ_Paul","Juicy_J","DJ_Premier","Marley_Marl","Young_Guru"],
+"Afrobeats / Amapiano":["Don_Jazzy","P_Square_production_style","Sarz","Killertunes","DBN_Gogo_DJ_style","Wizkid_production","Burna_Boy_production"],
+"Lo-Fi Hip-Hop":["Nujabes_production_style","J_Dilla_production_style","DJ_Premier","Pete_Rock","Large_Professor","Madlib","Knxwledge"],
+"Synthwave / Retrowave":["Giorgio_Moroder","Conny_Plank","Brian_Eno","Trevor_Horn","Daniel_Miller","Martin_Hannett","Tony_Visconti"],
+"Nu-Metal":["Ross_Robinson","Terry_Date","Colin_Richardson","Andy_Wallace","Bob_Clearmountain","Brendan_OBrien","Rick_Rubin"],
+"Indie Electronic / Dream Pop":["Nigel_Godrich","Alan_Moulder","Dave_Fridmann","Mark_Spike_Stent","Youth","Flood","Brian_Eno"],
+"Latin Trap / Reggaeton":["Tainy_production_style","Anitta_production","Dillon_Francis","Luny_Tunes_production","Bad_Bunny_production","J_Balvin_production","Diplo"],
+"IDM / Glitch":["Brian_Eno","Conny_Plank","Steve_Albini","Flood","Daniel_Miller","Jim_O_Rourke","Nigel_Godrich"],
+"Gospel / Sacred":["Al_Schmitt","Tom_Dowd","Quincy_Jones","Bill_Putnam","Norman_Whitfield","Thom_Bell","Kenny_Gamble"],
+"Noise Rock / No Wave":["Steve_Albini","Martin_Hannett","Jim_O_Rourke","Butch_Vig","Flood","John_Fryer","Brian_Eno"],
+"Jazz (Classic / Hard Bop)":["Rudy_Van_Gelder","Tom_Dowd","Bill_Putnam","Al_Schmitt","Teo_Macero","Bob_Thiele","Orrin_Keepnews"]
+},
+
+producers:{
+"Dub / Reggae":["Lee_Scratch_Perry_production_chaos","King_Tubby_influenced_mixing","Bunny_Lee_flying_cymbal_style","Joe_Gibbs_production","Augustus_Pablo_melodica_direction","Dennis_Bovell_lover_rock_influence","Chris_Blackwell_Island_Records_direction"],
+"Industrial":["Trent_Reznor_influenced_production","Al_Jourgensen_industrial_architecture","Flood_electronic_texture","Steve_Albini_raw_capture","Atticus_Ross_sound_design","Charlie_Clouser_programming","Tony_Visconti_layered_production"],
+"Grunge":["Butch_Vig_layered_guitar_production","Jack_Endino_raw_Seattle_sound","Brendan_OBrien_dense_mix","Terry_Date_heavy_production","Adam_Kasper_clean_capture","Barrett_Jones_four_track_aesthetic","Rick_Rubin_stripped_back"],
+"Jazz-Rap":["DJ_Premier_boom_bap_architecture","Pete_Rock_soul_sample_direction","Q-Tip_organic_production","Large_Professor_jazz_excavation","RZA_cinematic_loop_direction","Ali_Shaheed_Muhammad_texture","Tom_Dowd_Atlantic_clarity"],
+"Hip-Hop":["RZA_cinematic_loop_direction","DJ_Premier_boom_bap_architecture","Dr_Dre_west_coast_layering","Marley_Marl_sample_innovation","Hank_Shocklee_noise_production","Pete_Rock_soul_sample_direction","Quincy_Jones_orchestral_pop"],
+"Blues":["Sam_Phillips_Sun_production","Willie_Dixon_Chicago_direction","Leonard_Chess_raw_capture","Tom_Dowd_Atlantic_clarity","Jim_Dickinson_southern_looseness","Cosimo_Matassa_New_Orleans_warmth","Bill_Putnam_Universal_warmth"],
+"Soul / R&B":["Tom_Dowd_Atlantic_clarity","Norman_Whitfield_psychedelic_soul","Thom_Bell_Philadelphia_lush","Kenny_Gamble_orchestral_soul","Al_Bell_Stax_rawness","Isaac_Hayes_cinematic_direction","Quincy_Jones_orchestral_pop"],
+"Funk":["George_Clinton_P-Funk_architecture","Sly_Stone_psychedelic_funk_chaos","James_Brown_tight_direction","Norman_Whitfield_funk_soul","Roger_Troutman_vocoder_direction","Larry_Graham_bass_led_production","Prince_layered_studio_direction"],
+"Electronic":["Brian_Eno_ambient_architecture","Giorgio_Moroder_sequencer_direction","Conny_Plank_kosmische_texture","Daniel_Miller_minimal_synth","Martin_Hannett_industrial_atmosphere","Klaus_Schulze_sequencer_layering","Trevor_Horn_cinematic_digital"],
+"Ambient":["Brian_Eno_ambient_systems","Daniel_Lanois_textural_production","Harold_Budd_impressionist_direction","Flood_atmospheric_layering","Roger_Eno_gentle_texture","Mark_Birnbaum_space_focus","Nigel_Godrich_atmospheric_detail"],
+"Metal":["Terry_Date_heavy_clarity","Colin_Richardson_British_metal_direction","Andy_Sneap_modern_metal_production","Randy_Burns_thrash_rawness","Scott_Burns_death_metal_direction","Alex_Perialas_east_coast_thrash","Reinhold_Mack_Munich_rock"],
+"Post-Rock":["Steve_Albini_raw_ensemble_capture","John_McEntire_rhythmic_architecture","Jim_O_Rourke_noise_refinement","Dave_Fridmann_dense_layering","Tchad_Blake_binaural_production","Craig_Schumacher_desert_warmth","Nigel_Godrich_textural_depth"],
+"Psychedelic":["Paul_Rothchild_doors_direction","Joe_Boyd_british_folk_psychedelia","Tom_Wilson_electric_folk_direction","Bruce_Botnick_LA_psychedelic","Norman_Smith_early_Floyd","Alan_Parsons_production_craft","Geoff_Emerick_Beatles_innovation"],
+"Folk":["Bob_Johnston_Nashville_direction","Joe_Boyd_ECM_folk_texture","John_Simon_band_production","Elliott_Mazer_californian_folk","Paul_Rothchild_singer_songwriter","Norbert_Putnam_countrypolitan","Glyn_Johns_natural_sound"],
+"Classical / Orchestral":["Christopher_Bishop_EMI_orchestral","Andrew_Cornall_DG_production","Michael_Fine_Decca_direction","Jay_David_Saks_CBS_Masterworks","Marc_Aubort_Nonesuch_production","John_Dunkerley_orchestral_texture","George_Martin_orchestral_pop"],
+"Drum & Bass":["Goldie_metalheadz_direction","LTJ_Bukem_jazz_dnb_texture","Dillinja_Valve_sound_direction","Andy_C_Ram_Records_production","Photek_intricate_programming","Roni_Size_live_ensemble_direction","Mark_Spike_Stent_electronic_mix"],
+"Punk":["Chris_Thomas_polished_punk","Bill_Price_power_production","Craig_Leon_raw_first_wave","Shel_Talmy_brit_rock_direction","Alan_Winstanley_post_punk","Vic_Maile_pub_rock_rawness","Rick_Rubin_stripped_back"],
+"Shoegaze":["Kevin_Shields_wall_of_sound","Alan_Moulder_guitar_ocean","John_Fryer_four_AD_texture","Mark_Freegard_indie_rawness","Stephen_Street_brit_indie","Youth_alternative_production","Dave_Fridmann_dense_layering"],
+"Dark Folk":["Joe_Boyd_witchseason_direction","Steve_Albini_raw_folk_capture","Youth_alternative_texture","Martin_Hannett_gothic_atmosphere","Craig_Schumacher_desert_meditation","John_Wood_pastoral_folk","Brian_Eno_ambient_texture"],
+"Bardcore / Medieval":["Christopher_Bishop_orchestral_direction","Brian_Eno_ambient_medieval_texture","Andrew_Cornall_early_music_production","Youth_alternative_ancient","Michael_Fine_period_instrument_direction","John_Dunkerley_choral_architecture","George_Martin_orchestral_arrangement"],
+"Hyperpop":["A.G._Cook_PC_Music_direction","SOPHIE_maximalist_production","Danny_L_Harle_hyper_production","Trevor_Horn_digital_lush","Flood_electronic_architecture","Daniel_Miller_minimal_synth","Mark_Spike_Stent_modern_mix"],
+"Phonk":["DJ_Smokey_Memphis_production","DJ_Paul_Three_6_Mafia_direction","Juicy_J_chopped_screwed","DJ_Premier_boom_bap_architecture","Marley_Marl_sample_innovation","Madlib_dusty_sample_excavation","RZA_cinematic_loop_direction"],
+"Afrobeats / Amapiano":["Don_Jazzy_Mavin_Records_direction","Sarz_afrobeats_production","Killertunes_Lagos_direction","P_Square_twin_production","Wizkid_starboy_production","Burna_Boy_African_giant_direction","Chris_Blackwell_Island_Records_direction"],
+"Lo-Fi Hip-Hop":["Nujabes_dusty_jazz_direction","J_Dilla_Detroit_soul_production","Pete_Rock_soul_sample_direction","Madlib_Stones_Throw_excavation","Knxwledge_bedroom_production","Large_Professor_jazz_excavation","DJ_Premier_boom_bap_architecture"],
+"Synthwave / Retrowave":["Giorgio_Moroder_sequencer_direction","Trevor_Horn_digital_lush","Brian_Eno_ambient_architecture","Conny_Plank_kosmische_texture","Martin_Hannett_industrial_atmosphere","Daniel_Miller_minimal_synth","Tony_Visconti_layered_production"],
+"Nu-Metal":["Ross_Robinson_raw_nu_metal_direction","Terry_Date_heavy_clarity","Rick_Rubin_stripped_back","Andy_Wallace_rock_mix","Brendan_OBrien_dense_mix","Colin_Richardson_British_metal_direction","Bob_Clearmountain_polished_rock"],
+"Indie Electronic / Dream Pop":["Nigel_Godrich_atmospheric_detail","Brian_Eno_ambient_architecture","Dave_Fridmann_dense_layering","Alan_Moulder_guitar_ocean","Mark_Spike_Stent_modern_mix","Flood_atmospheric_layering","Youth_alternative_production"],
+"Latin Trap / Reggaeton":["Tainy_reggaeton_production","Luny_Tunes_dembow_direction","Dillon_Francis_electronic_fusion","Bad_Bunny_self_direction","J_Balvin_urban_latin","Diplo_global_bass_direction","Anitta_Brazilian_pop_direction"],
+"IDM / Glitch":["Brian_Eno_ambient_systems","Conny_Plank_kosmische_texture","Jim_O_Rourke_noise_refinement","Flood_electronic_texture","Daniel_Miller_minimal_synth","Nigel_Godrich_atmospheric_detail","Steve_Albini_raw_capture"],
+"Gospel / Sacred":["Quincy_Jones_orchestral_pop","Tom_Dowd_Atlantic_clarity","Al_Schmitt_Capitol_clarity","Thom_Bell_Philadelphia_lush","Kenny_Gamble_orchestral_soul","Norman_Whitfield_psychedelic_soul","George_Martin_orchestral_arrangement"],
+"Noise Rock / No Wave":["Steve_Albini_raw_capture","Martin_Hannett_industrial_atmosphere","Jim_O_Rourke_noise_refinement","Butch_Vig_layered_production","Flood_electronic_texture","Brian_Eno_ambient_texture","Youth_alternative_texture"],
+"Jazz (Classic / Hard Bop)":["Teo_Macero_Columbia_direction","Tom_Dowd_Atlantic_clarity","Bill_Putnam_Universal_warmth","Rudy_Van_Gelder_Blue_Note_clarity","Bob_Thiele_Impulse_direction","Orrin_Keepnews_Riverside_production","Al_Schmitt_Capitol_clarity"]
+},
+
+consoles:{
+"Dub / Reggae":["King_Tubby_custom_mixing_board","Soundcraft_Series_2","MCI_JH-556","Neve_8078","API_1604","Trident_Series_80","SSL_4000E"],
+"Industrial":["SSL_4000G","Neve_8078","API_2488","Neve_8014","SSL_9000J","Trident_Series_80","Harrison_32C"],
+"Grunge":["SSL_4000G","Neve_8078","Neve_8028","API_2488","MCI_JH-636","Neve_8014","Trident_A_Range"],
+"Jazz-Rap":["SSL_4000E","Neve_8078","API_1604","MCI_JH-416","Neve_1073_summing","SSL_6000E","Neve_8028"],
+"Hip-Hop":["SSL_4000E","Neve_8078","API_2488","MCI_JH-636","SSL_9000J","Neve_8014","Neve_8028"],
+"Blues":["Neve_1073_mono","API_1604","MCI_JH-416","Universal_Audio_610","Flickinger_console","RCA_custom_board","Auditronics_501"],
+"Soul / R&B":["Neve_8078","API_1604","MCI_JH-416","Flickinger_console","Neve_1073_summing","SSL_4000E","Auditronics_501"],
+"Funk":["API_1604","Neve_8078","MCI_JH-416","SSL_4000E","Trident_Series_80","Flickinger_console","Quad_8_Coronado"],
+"Electronic":["Neve_8078","SSL_4000E","API_1604","Roland_custom_board","Trident_Series_80","Soundcraft_Series_2","Harrison_32C"],
+"Ambient":["SSL_4000E","Neve_8078","Neve_1073_summing","API_1604","Trident_A_Range","Soundcraft_Series_2","Neve_8014"],
+"Metal":["SSL_4000G","Neve_8078","API_2488","SSL_9000J","MCI_JH-636","Neve_8014","Neve_8028"],
+"Post-Rock":["Neve_8078","API_1604","SSL_4000E","Trident_A_Range","Neve_1073_summing","Soundcraft_Series_2","Neve_8028"],
+"Psychedelic":["Neve_8078","API_1604","Trident_A_Range","MCI_JH-416","Neve_1073_mono","Helios_Type_69","EMI_TG12345"],
+"Folk":["Neve_8078","API_1604","MCI_JH-416","Columbia_custom_board","Neve_1073_summing","Trident_A_Range","SSL_4000E"],
+"Classical / Orchestral":["Neve_8078","SSL_4000E","API_1604","Neve_1073_summing","Trident_A_Range","SSL_6000E","Harrison_32C"],
+"Drum & Bass":["SSL_4000G","SSL_9000J","Neve_8078","API_2488","Trident_Series_80","SSL_4000E","Neve_88RS"],
+"Punk":["Neve_8078","API_1604","MCI_JH-416","Trident_A_Range","Soundcraft_Series_2","Allen_Heath_custom","SSL_4000E"],
+"Shoegaze":["SSL_4000E","Neve_8078","API_1604","Neve_1073_summing","Trident_A_Range","SSL_9000J","Neve_88RS"],
+"Dark Folk":["Neve_8078","API_1604","SSL_4000E","Neve_1073_summing","Trident_A_Range","MCI_JH-416","Neve_8014"],
+"Bardcore / Medieval":["SSL_4000E","Neve_8078","API_1604","Neve_1073_summing","Trident_A_Range","Soundcraft_Series_2","Harrison_32C"],
+"Hyperpop":["SSL_9000J","Neve_88RS","API_2488","SSL_4000G","SSL_4000E","Harrison_32C","Neve_8078"],
+"Phonk":["SSL_4000E","Neve_8078","API_1604","MCI_JH-636","Neve_8028","Quad_8_Coronado","Auditronics_501"],
+"Afrobeats / Amapiano":["SSL_9000J","Neve_88RS","SSL_4000G","API_2488","SSL_4000E","Neve_8078","Harrison_32C"],
+"Lo-Fi Hip-Hop":["Neve_8078","API_1604","MCI_JH-416","Neve_1073_summing","Auditronics_501","Neve_8028","SSL_4000E"],
+"Synthwave / Retrowave":["Neve_8078","SSL_4000E","API_1604","Roland_custom_board","Neve_1073_summing","Harrison_32C","MCI_JH-636"],
+"Nu-Metal":["SSL_4000G","SSL_9000J","Neve_8078","API_2488","Neve_8028","MCI_JH-636","Harrison_32C"],
+"Indie Electronic / Dream Pop":["SSL_4000E","Neve_8078","API_1604","Neve_1073_summing","Neve_88RS","SSL_9000J","Trident_A_Range"],
+"Latin Trap / Reggaeton":["SSL_9000J","Neve_88RS","SSL_4000G","API_2488","SSL_4000E","Neve_8078","Harrison_32C"],
+"IDM / Glitch":["SSL_4000E","Neve_8078","API_1604","Neve_88RS","SSL_9000J","Neve_1073_summing","Harrison_32C"],
+"Gospel / Sacred":["Neve_8078","API_1604","SSL_4000E","Neve_1073_summing","Auditronics_501","Neve_8028","Ocean_Way_custom_board"],
+"Noise Rock / No Wave":["SSL_4000G","Neve_8078","API_2488","Neve_8028","MCI_JH-636","Neve_8014","Trident_A_Range"],
+"Jazz (Classic / Hard Bop)":["Neve_1073_mono","API_1604","Universal_Audio_610","RCA_custom_board","Columbia_custom_board","Neve_8078","Auditronics_501"]
+},
+
+tapes:{
+"Dub / Reggae":["Studer_A80","Ampex_351","MCI_JH-110","Otari_MTR-90","Studer_A800","Ampex_440","3M_M79"],
+"Industrial":["Studer_A800","Ampex_440","Tascam_MSR-24","Otari_MTR-90","Studer_A80","3M_M79","Sony_PCM-3324_digital"],
+"Grunge":["Studer_A800","Ampex_440","Otari_MTR-90","Tascam_MSR-24","Studer_A80","3M_M79","MCI_JH-110"],
+"Jazz-Rap":["Studer_A800","Ampex_351","Otari_MTR-90","MCI_JH-110","Studer_A80","Ampex_440","3M_M79"],
+"Hip-Hop":["Studer_A800","Otari_MTR-90","Ampex_440","MCI_JH-110","Studer_A80","Tascam_MSR-24","Sony_PCM-3324_digital"],
+"Blues":["Ampex_351","Ampex_440","MCI_JH-110","Studer_A80","Otari_MTR-90","Studer_A800","3M_M56"],
+"Soul / R&B":["Ampex_440","Studer_A800","MCI_JH-110","Otari_MTR-90","Studer_A80","Ampex_351","3M_M79"],
+"Funk":["Ampex_440","Studer_A800","MCI_JH-110","Otari_MTR-90","Studer_A80","3M_M79","Sony_PCM-3324_digital"],
+"Electronic":["Studer_A800","Studer_A80","Otari_MTR-90","Ampex_440","3M_M79","Tascam_MSR-24","Sony_PCM-3324_digital"],
+"Ambient":["Studer_A800","Studer_A80","Ampex_440","Otari_MTR-90","3M_M79","Tascam_MSR-24","Ampex_351"],
+"Metal":["Studer_A800","Otari_MTR-90","Ampex_440","Tascam_MSR-24","3M_M79","Studer_A80","Sony_PCM-3324_digital"],
+"Post-Rock":["Studer_A800","Ampex_440","Otari_MTR-90","Studer_A80","3M_M79","Tascam_MSR-24","Ampex_351"],
+"Psychedelic":["Ampex_440","Studer_A80","MCI_JH-110","Studer_A800","Otari_MTR-90","Ampex_351","3M_M56"],
+"Folk":["Ampex_351","Ampex_440","MCI_JH-110","Studer_A80","Otari_MTR-90","Studer_A800","3M_M56"],
+"Classical / Orchestral":["Studer_A800","Studer_A80","Ampex_440","Otari_MTR-90","3M_M79","Ampex_351","Sony_PCM-3324_digital"],
+"Drum & Bass":["Studer_A800","Otari_MTR-90","Tascam_MSR-24","Ampex_440","3M_M79","Studer_A80","Sony_PCM-3324_digital"],
+"Punk":["Ampex_440","Studer_A80","MCI_JH-110","Otari_MTR-90","Studer_A800","Tascam_MSR-24","3M_M56"],
+"Shoegaze":["Studer_A800","Ampex_440","Otari_MTR-90","Studer_A80","3M_M79","Tascam_MSR-24","Ampex_351"],
+"Dark Folk":["Studer_A800","Ampex_440","Otari_MTR-90","Studer_A80","Ampex_351","3M_M79","MCI_JH-110"],
+"Bardcore / Medieval":["Studer_A800","Ampex_440","Otari_MTR-90","Studer_A80","3M_M79","Ampex_351","Sony_PCM-3324_digital"],
+"Hyperpop":["Pro_Tools_HD_digital","Sony_PCM-3324_digital","Tascam_MSR-24","Studer_A800","Otari_MTR-90","3M_M79","Ampex_440"],
+"Phonk":["Tascam_MSR-24","Studer_A800","Ampex_440","MCI_JH-110","Otari_MTR-90","3M_M79","Studer_A80"],
+"Afrobeats / Amapiano":["Pro_Tools_HD_digital","Sony_PCM-3324_digital","Studer_A800","Otari_MTR-90","Tascam_MSR-24","3M_M79","Ampex_440"],
+"Lo-Fi Hip-Hop":["Tascam_Portastudio_4-track","Ampex_351","Studer_A80","MCI_JH-110","Otari_MTR-90","Studer_A800","3M_M56"],
+"Synthwave / Retrowave":["Studer_A800","Sony_PCM-3324_digital","Otari_MTR-90","Ampex_440","3M_M79","Tascam_MSR-24","Studer_A80"],
+"Nu-Metal":["Pro_Tools_HD_digital","Studer_A800","Otari_MTR-90","Tascam_MSR-24","3M_M79","Ampex_440","Sony_PCM-3324_digital"],
+"Indie Electronic / Dream Pop":["Studer_A800","Ampex_440","Otari_MTR-90","Tascam_MSR-24","3M_M79","Studer_A80","Sony_PCM-3324_digital"],
+"Latin Trap / Reggaeton":["Pro_Tools_HD_digital","Sony_PCM-3324_digital","Studer_A800","Otari_MTR-90","Tascam_MSR-24","3M_M79","Ampex_440"],
+"IDM / Glitch":["Pro_Tools_HD_digital","Sony_PCM-3324_digital","Tascam_MSR-24","Studer_A800","Otari_MTR-90","3M_M79","Studer_A80"],
+"Gospel / Sacred":["Studer_A800","Ampex_440","MCI_JH-110","Otari_MTR-90","Studer_A80","3M_M79","Ampex_351"],
+"Noise Rock / No Wave":["Studer_A800","Ampex_440","Otari_MTR-90","Tascam_MSR-24","Studer_A80","3M_M79","MCI_JH-110"],
+"Jazz (Classic / Hard Bop)":["Ampex_351","Ampex_440","MCI_JH-110","Studer_A80","3M_M56","Columbia_custom_tape","Reeves_Ampex_350"]
+},
+
+preamps:{
+"Dub / Reggae":["Neve_1073_preamp","API_512C","Universal_Audio_610","King_Tubby_custom_preamp","Neve_1081","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Industrial":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","API_550_preamp","Focusrite_ISA_110"],
+"Grunge":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","Focusrite_ISA_110","API_550_preamp"],
+"Jazz-Rap":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","Helios_Type_69_preamp","Focusrite_ISA_110","RCA_77_ribbon_mic_preamp"],
+"Hip-Hop":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","API_550_preamp","Focusrite_ISA_110"],
+"Blues":["Universal_Audio_610","Neve_1073_preamp","RCA_BA-6A","Pultec_EQP-1A","API_512C","Neve_1081","Helios_Type_69_preamp"],
+"Soul / R&B":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","Neve_1081","RCA_BA-6A","Focusrite_ISA_110"],
+"Funk":["API_512C","Neve_1073_preamp","Universal_Audio_610","Neve_1081","Pultec_EQP-1A","API_550_preamp","Focusrite_ISA_110"],
+"Electronic":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","Focusrite_ISA_110","API_550_preamp"],
+"Ambient":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","Neve_1081","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Metal":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","API_550_preamp","Focusrite_ISA_110"],
+"Post-Rock":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","Pultec_EQP-1A","Focusrite_ISA_110","Helios_Type_69_preamp"],
+"Psychedelic":["Universal_Audio_610","Neve_1073_preamp","Helios_Type_69_preamp","EMI_REDD_51_preamp","Pultec_EQP-1A","API_512C","RCA_77_ribbon_mic_preamp"],
+"Folk":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","RCA_77_ribbon_mic_preamp","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Classical / Orchestral":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","Neve_1081","RCA_77_ribbon_mic_preamp","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Drum & Bass":["Neve_1073_preamp","API_512C","Universal_Audio_610","SSL_E-channel_preamp","Neve_1081","API_550_preamp","Focusrite_ISA_110"],
+"Punk":["API_512C","Neve_1073_preamp","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","Focusrite_ISA_110","API_550_preamp"],
+"Shoegaze":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","Neve_1081","Focusrite_ISA_110","Helios_Type_69_preamp"],
+"Dark Folk":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","RCA_77_ribbon_mic_preamp","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Bardcore / Medieval":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","RCA_77_ribbon_mic_preamp","Neve_1081","Helios_Type_69_preamp","Focusrite_ISA_110"],
+"Hyperpop":["SSL_E-channel_preamp","Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","Neve_88RS_preamp","Focusrite_ISA_110"],
+"Phonk":["Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","SSL_E-channel_preamp","Pultec_EQP-1A","API_550_preamp"],
+"Afrobeats / Amapiano":["SSL_E-channel_preamp","Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_88RS_preamp","Neve_1081","Focusrite_ISA_110"],
+"Lo-Fi Hip-Hop":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","RCA_BA-6A","Neve_1081","Helios_Type_69_preamp"],
+"Synthwave / Retrowave":["Neve_1073_preamp","API_512C","Universal_Audio_610","SSL_E-channel_preamp","Neve_1081","Pultec_EQP-1A","Focusrite_ISA_110"],
+"Nu-Metal":["SSL_E-channel_preamp","Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","API_550_preamp","Focusrite_ISA_110"],
+"Indie Electronic / Dream Pop":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","Neve_1081","Focusrite_ISA_110","Helios_Type_69_preamp"],
+"Latin Trap / Reggaeton":["SSL_E-channel_preamp","Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_88RS_preamp","Neve_1081","Focusrite_ISA_110"],
+"IDM / Glitch":["SSL_E-channel_preamp","Neve_1073_preamp","API_512C","Universal_Audio_610","Neve_1081","Neve_88RS_preamp","Focusrite_ISA_110"],
+"Gospel / Sacred":["Neve_1073_preamp","Universal_Audio_610","Pultec_EQP-1A","API_512C","Neve_1081","RCA_77_ribbon_mic_preamp","Focusrite_ISA_110"],
+"Noise Rock / No Wave":["API_512C","Neve_1073_preamp","Universal_Audio_610","SSL_E-channel_preamp","Neve_1081","API_550_preamp","Focusrite_ISA_110"],
+"Jazz (Classic / Hard Bop)":["Universal_Audio_610","Neve_1073_preamp","Pultec_EQP-1A","RCA_77_ribbon_mic_preamp","RCA_BA-6A","Helios_Type_69_preamp","Neve_1081"]
+},
+
+basses:{
+"Dub / Reggae":["Fender_Jazz_Bass_detuned_DI","Fender_Precision_Bass_flatwound","Moog_Taurus_II_sub_pedals","Gibson_EB-3_bass","Upright_bass_bowed","Rickenbacker_4001_bass","Ampeg_Baby_Bass"],
+"Industrial":["Moog_Taurus_II_sub_pedals","Fender_Jazz_Bass_detuned_SansAmp_RBI","Distorted_bass_resampled","Gibson_Thunderbird_bass","Fender_Precision_Bass_distorted","Synth_bass_resampled_backwards","Moog_Minimoog_Model_D_bass"],
+"Grunge":["Fender_Precision_Bass_flatwound","Gibson_Thunderbird_bass","Rickenbacker_4001_bass","Fender_Jazz_Bass_detuned","Hamer_bass_distorted","Electra_bass_fuzz","Music_Man_Stingray_bass"],
+"Jazz-Rap":["Fender_Jazz_Bass_fingerstyle","Upright_bass_bowed","Fender_Precision_Bass_flatwound","Gibson_EB-3_bass","Rickenbacker_4001_bass","Ampeg_Baby_Bass","Rhodes_Mark_II_bass_register"],
+"Hip-Hop":["Fender_Jazz_Bass_DI","Moog_Taurus_II_sub_pedals","Fender_Precision_Bass_flatwound","TR-808_bass_resampled","SP-1200_bass_chop","Synth_bass_pitched_down","Moog_Minimoog_Model_D_bass"],
+"Blues":["Fender_Precision_Bass_flatwound","Upright_bass_bowed","Gibson_EB-3_bass","Fender_Jazz_Bass_fingerstyle","Ampeg_Baby_Bass","Kay_bass_plucked","Hofner_500_1_bass"],
+"Soul / R&B":["Fender_Jazz_Bass_fingerstyle","Fender_Precision_Bass_flatwound","Rickenbacker_4001_bass","Gibson_EB-3_bass","Upright_bass_bowed","Ampeg_Baby_Bass","Music_Man_Stingray_bass"],
+"Funk":["Fender_Jazz_Bass_slap","Rickenbacker_4001_bass","Fender_Precision_Bass_slap","Music_Man_Stingray_bass","Gibson_EB-3_bass","Hohner_B2_bass","Moog_Minimoog_Model_D_bass"],
+"Electronic":["Moog_Taurus_II_sub_pedals","Synth_bass_resampled","Roland_SH-101_bass","Korg_MS-20_bass","Sequential_Prophet_5_bass","Roland_Juno-106_bass","Moog_Minimoog_Model_D_bass"],
+"Ambient":["Fender_Jazz_Bass_bowed","Upright_bass_bowed","Moog_Taurus_II_sub_pedals","Synth_bass_slow_attack","Roland_Juno-106_bass","Fender_Precision_Bass_flatwound","Moog_Minimoog_Model_D_bass"],
+"Metal":["Rickenbacker_4001_bass","Gibson_Thunderbird_bass","Fender_Jazz_Bass_detuned","Hamer_bass_distorted","Spector_bass_active","Warwick_Thumb_bass","Music_Man_Stingray_bass"],
+"Post-Rock":["Fender_Jazz_Bass_fingerstyle","Fender_Precision_Bass_flatwound","Upright_bass_bowed","Music_Man_Stingray_bass","Rickenbacker_4001_bass","Moog_Taurus_II_sub_pedals","Gibson_Thunderbird_bass"],
+"Psychedelic":["Fender_Jazz_Bass_fuzz","Rickenbacker_4001_bass","Gibson_EB-3_bass","Fender_Precision_Bass_flatwound","Vox_Phantom_bass","Hofner_500_1_bass","Moog_Minimoog_Model_D_bass"],
+"Folk":["Upright_bass_bowed","Fender_Precision_Bass_flatwound","Gibson_EB-3_bass","Fender_Jazz_Bass_fingerstyle","Ampeg_Baby_Bass","Kay_bass_plucked","Hofner_500_1_bass"],
+"Classical / Orchestral":["Upright_bass_bowed","Cello_section_low","Contrabassoon_low_drone","Upright_bass_pizzicato","Tuba_bass_low","Synth_bass_slow_attack","Moog_Minimoog_Model_D_bass"],
+"Drum & Bass":["Moog_Taurus_II_sub_pedals","Synth_bass_resampled","Roland_SH-101_bass","TR-909_bass","Amen_break_bass_resampled","Fender_Jazz_Bass_DI_pitched","Moog_Minimoog_Model_D_bass"],
+"Punk":["Fender_Precision_Bass_pick","Rickenbacker_4001_bass","Gibson_Thunderbird_bass","Fender_Jazz_Bass_pick","Hamer_bass_distorted","Hofner_bass_pick","Music_Man_Stingray_bass"],
+"Shoegaze":["Fender_Jazz_Bass_fuzz","Fender_Precision_Bass_flatwound","Rickenbacker_4001_bass","Moog_Taurus_II_sub_pedals","Gibson_EB-3_bass","Synth_bass_slow_attack","Music_Man_Stingray_bass"],
+"Dark Folk":["Upright_bass_bowed","Fender_Precision_Bass_flatwound","Gibson_EB-3_bass","Cello_low_drone","Synth_bass_slow_attack","Kay_bass_plucked","Moog_Minimoog_Model_D_bass"],
+"Bardcore / Medieval":["Upright_bass_bowed","Cello_low_drone","Contrabassoon_low_drone","Hurdy-gurdy_drone","Lute_bass","Synth_bass_slow_attack","Vielle_bowed"],
+"Hyperpop":["Synth_bass_resampled","Moog_Taurus_II_sub_pedals","Roland_SH-101_bass","TR-909_bass","Moog_Minimoog_Model_D_bass","Korg_MS-20_bass","Sequential_Prophet_5_bass"],
+"Phonk":["TR-808_bass_resampled","Moog_Taurus_II_sub_pedals","Fender_Precision_Bass_flatwound","Synth_bass_pitched_down","SP-1200_bass_chop","Moog_Minimoog_Model_D_bass","Roland_SH-101_bass"],
+"Afrobeats / Amapiano":["Fender_Jazz_Bass_DI","Moog_Taurus_II_sub_pedals","TR-909_bass","Synth_bass_resampled","Roland_SH-101_bass","Korg_MS-20_bass","Fender_Precision_Bass_flatwound"],
+"Lo-Fi Hip-Hop":["Upright_bass_bowed","Fender_Precision_Bass_flatwound","SP-1200_bass_chop","TR-808_bass_resampled","Gibson_EB-3_bass","Ampeg_Baby_Bass","Fender_Jazz_Bass_fingerstyle"],
+"Synthwave / Retrowave":["Moog_Minimoog_Model_D_bass","Moog_Taurus_II_sub_pedals","Roland_SH-101_bass","Korg_MS-20_bass","Sequential_Prophet_5_bass","Roland_Juno-106_bass","Synth_bass_resampled"],
+"Nu-Metal":["Fender_Jazz_Bass_detuned","Spector_bass_active","Warwick_Thumb_bass","Music_Man_Stingray_bass","Gibson_Thunderbird_bass","Hamer_bass_distorted","Rickenbacker_4001_bass"],
+"Indie Electronic / Dream Pop":["Fender_Jazz_Bass_bowed","Fender_Precision_Bass_flatwound","Moog_Taurus_II_sub_pedals","Roland_Juno-106_bass","Synth_bass_slow_attack","Moog_Minimoog_Model_D_bass","Gibson_EB-3_bass"],
+"Latin Trap / Reggaeton":["TR-808_bass_resampled","Moog_Taurus_II_sub_pedals","Synth_bass_resampled","Roland_SH-101_bass","Fender_Jazz_Bass_DI","Korg_MS-20_bass","Moog_Minimoog_Model_D_bass"],
+"IDM / Glitch":["Moog_Taurus_II_sub_pedals","Synth_bass_resampled","Roland_SH-101_bass","Moog_Minimoog_Model_D_bass","Korg_MS-20_bass","TR-909_bass","Sequential_Prophet_5_bass"],
+"Gospel / Sacred":["Fender_Jazz_Bass_fingerstyle","Fender_Precision_Bass_flatwound","Upright_bass_bowed","Gibson_EB-3_bass","Music_Man_Stingray_bass","Ampeg_Baby_Bass","Rickenbacker_4001_bass"],
+"Noise Rock / No Wave":["Fender_Precision_Bass_pick","Gibson_Thunderbird_bass","Fender_Jazz_Bass_distorted","Hamer_bass_distorted","Moog_Taurus_II_sub_pedals","Distorted_bass_resampled","Rickenbacker_4001_bass"],
+"Jazz (Classic / Hard Bop)":["Upright_bass_bowed","Upright_bass_pizzicato","Ampeg_Baby_Bass","Kay_bass_plucked","Fender_Precision_Bass_flatwound","Gibson_EB-3_bass","Hofner_500_1_bass"]
+},
+
+amps:{
+"Dub / Reggae":["Marshall_JCM800_clean","Fender_Twin_Reverb","Roland_JC120_clean_skank","Vox_AC30_clean","Yamaha_RA-200_rotary","Carlsbro_100_clean","Fender_Bassman_clean"],
+"Industrial":["Marshall_JCM800_high_gain","EVH_5150_sustained_feedback","Mesa_Boogie_Rectifier","Roland_JC120_clean_layer","Peavey_5150_distortion","Fender_Bassman_driven","Orange_AD30_pushed"],
+"Grunge":["Marshall_JCM800_high_gain","Mesa_Boogie_Dual_Rectifier","Fender_Bassman_driven","Orange_AD30_pushed","Hiwatt_DR103_clean","Vox_AC30_pushed","Peavey_5150_distortion"],
+"Jazz-Rap":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Vox_AC30_clean","Ampeg_SVT_clean","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Gibson_GA-40_Les_Paul_amp"],
+"Hip-Hop":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Ampeg_SVT_clean","Marshall_JCM800_mid_gain","Peavey_Nashville_clean","Fender_Bassman_clean","Marshall_JTM45_clean"],
+"Blues":["Fender_Bassman_pushed","Fender_Twin_Reverb_clean","Marshall_JTM45_pushed","Vox_AC30_pushed","Fender_Deluxe_Reverb_pushed","Gibson_GA-40_Les_Paul_amp","Fender_Champ_pushed"],
+"Soul / R&B":["Fender_Twin_Reverb_clean","Roland_JC120_clean","Vox_AC30_clean","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Yamaha_RA-200_rotary","Ampeg_SVT_clean"],
+"Funk":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Vox_AC30_pushed","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Mesa_Boogie_Mark_I_clean","Ampeg_SVT_clean"],
+"Electronic":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Roland_Chorus_Echo_RE-201","Marshall_JTM45_clean","Korg_Delta_strings_amp","Yamaha_RA-200_rotary","Vox_AC30_clean"],
+"Ambient":["Fender_Twin_Reverb_clean","Roland_JC120_clean","Vox_AC30_clean","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Yamaha_RA-200_rotary","Fender_Champ_clean"],
+"Metal":["EVH_5150_sustained","Mesa_Boogie_Dual_Rectifier","Marshall_JCM800_high_gain","Peavey_5150_distortion","Diezel_VH4_high_gain","Randall_RG100_ES","Orange_AD30_pushed"],
+"Post-Rock":["Fender_Twin_Reverb_clean","Marshall_JCM800_mid_gain","Vox_AC30_clean","Roland_JC120_clean","Orange_AD30_pushed","Mesa_Boogie_Mark_I_clean","Hiwatt_DR103_pushed"],
+"Psychedelic":["Fender_Twin_Reverb_pushed","Vox_AC30_pushed","Marshall_JTM45_pushed","Fender_Bassman_pushed","Orange_AD30_pushed","Hiwatt_DR103_pushed","Fender_Champ_pushed"],
+"Folk":["Fender_Deluxe_Reverb_clean","Fender_Twin_Reverb_clean","Vox_AC15_clean","Marshall_JTM45_clean","Ampeg_Reverberocket_clean","Gibson_GA-40_Les_Paul_amp","Fender_Champ_clean"],
+"Classical / Orchestral":["Fender_Twin_Reverb_clean","Roland_JC120_clean","Yamaha_RA-200_rotary","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Vox_AC30_clean","Ampeg_Reverberocket_clean"],
+"Drum & Bass":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Marshall_JCM800_mid_gain","Ampeg_SVT_clean","Mesa_Boogie_Mark_I_clean","Peavey_Nashville_clean","Vox_AC30_clean"],
+"Punk":["Marshall_JCM800_pushed","Vox_AC30_pushed","Orange_AD30_pushed","Fender_Bassman_pushed","Hiwatt_DR103_pushed","Marshall_JTM45_pushed","Peavey_5150_distortion"],
+"Shoegaze":["Fender_Twin_Reverb_pushed","Vox_AC30_pushed","Roland_JC120_chorus_engaged","Marshall_JCM800_mid_gain","Fender_Bassman_pushed","Orange_AD30_pushed","Hiwatt_DR103_pushed"],
+"Dark Folk":["Fender_Deluxe_Reverb_clean","Vox_AC30_clean","Fender_Twin_Reverb_clean","Marshall_JTM45_clean","Ampeg_Reverberocket_clean","Roland_JC120_clean","Fender_Champ_clean"],
+"Bardcore / Medieval":["Fender_Twin_Reverb_clean","Roland_JC120_clean","Vox_AC30_clean","Fender_Deluxe_Reverb_clean","Marshall_JTM45_clean","Yamaha_RA-200_rotary","Ampeg_Reverberocket_clean"],
+"Hyperpop":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Vox_AC30_clean","Marshall_JTM45_clean","Mesa_Boogie_Mark_I_clean","Orange_AD30_pushed","Peavey_Nashville_clean"],
+"Phonk":["Fender_Bassman_pushed","Marshall_JTM45_pushed","Vox_AC30_pushed","Fender_Twin_Reverb_clean","Roland_JC120_clean","Gibson_GA-40_Les_Paul_amp","Fender_Deluxe_Reverb_pushed"],
+"Afrobeats / Amapiano":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Vox_AC30_clean","Marshall_JTM45_clean","Ampeg_SVT_clean","Peavey_Nashville_clean","Yamaha_RA-200_rotary"],
+"Lo-Fi Hip-Hop":["Fender_Champ_pushed","Fender_Deluxe_Reverb_clean","Gibson_GA-40_Les_Paul_amp","Ampeg_Reverberocket_clean","Fender_Twin_Reverb_clean","Roland_JC120_clean","Vox_AC15_clean"],
+"Synthwave / Retrowave":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Yamaha_RA-200_rotary","Marshall_JTM45_clean","Korg_Delta_strings_amp","Vox_AC30_clean","Roland_Chorus_Echo_RE-201"],
+"Nu-Metal":["EVH_5150_sustained","Mesa_Boogie_Dual_Rectifier","Marshall_JCM800_high_gain","Peavey_5150_distortion","Diezel_VH4_high_gain","Orange_AD30_pushed","Randall_RG100_ES"],
+"Indie Electronic / Dream Pop":["Fender_Twin_Reverb_pushed","Roland_JC120_chorus_engaged","Vox_AC30_pushed","Marshall_JTM45_clean","Fender_Deluxe_Reverb_pushed","Orange_AD30_pushed","Fender_Champ_pushed"],
+"Latin Trap / Reggaeton":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Ampeg_SVT_clean","Marshall_JTM45_clean","Mesa_Boogie_Mark_I_clean","Peavey_Nashville_clean","Vox_AC30_clean"],
+"IDM / Glitch":["Roland_JC120_clean","Fender_Twin_Reverb_clean","Vox_AC30_clean","Marshall_JTM45_clean","Mesa_Boogie_Mark_I_clean","Roland_Chorus_Echo_RE-201","Yamaha_RA-200_rotary"],
+"Gospel / Sacred":["Fender_Twin_Reverb_clean","Roland_JC120_clean","Vox_AC30_clean","Yamaha_RA-200_rotary","Marshall_JTM45_clean","Fender_Deluxe_Reverb_clean","Ampeg_SVT_clean"],
+"Noise Rock / No Wave":["Marshall_JCM800_high_gain","Mesa_Boogie_Dual_Rectifier","Peavey_5150_distortion","Fender_Bassman_pushed","Orange_AD30_pushed","EVH_5150_sustained","Vox_AC30_pushed"],
+"Jazz (Classic / Hard Bop)":["Fender_Deluxe_Reverb_clean","Fender_Twin_Reverb_clean","Gibson_GA-40_Les_Paul_amp","Ampeg_Reverberocket_clean","Vox_AC15_clean","Roland_JC120_clean","Fender_Champ_clean"]
+},
+
+keys:{
+"Dub / Reggae":["Hammond_B3_organ","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Korg_M1_reggae_organ","Roland_Juno-106","Hohner_Clavinet","Fender_Rhodes_Stage_Piano"],
+"Industrial":["Sequential_Prophet_5","Oberheim_OB-Xa","Korg_M1","Roland_Juno-106","Moog_Minimoog_Model_D","ARP_2600","Roland_D-50"],
+"Grunge":["Fender_Rhodes_Stage_Piano","Hammond_B3_organ","Wurlitzer_200_electric_piano","Roland_Juno-106","Sequential_Prophet_5","Korg_M1","Oberheim_OB-Xa"],
+"Jazz-Rap":["Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Hammond_B3_organ","Fender_Rhodes_Stage_Piano","Hohner_Clavinet","Korg_M1","Roland_Juno-106"],
+"Hip-Hop":["Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Hammond_B3_organ","Korg_M1","Roland_Juno-106","Sequential_Prophet_5","Fender_Rhodes_Stage_Piano"],
+"Blues":["Hammond_B3_organ","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Hohner_Clavinet","Fender_Rhodes_Stage_Piano","Steinway_grand_piano","Bluthner_upright_piano"],
+"Soul / R&B":["Hammond_B3_organ","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Hohner_Clavinet","Fender_Rhodes_Stage_Piano","Steinway_grand_piano","Korg_M1"],
+"Funk":["Hohner_Clavinet","Hammond_B3_organ","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Fender_Rhodes_Stage_Piano","Sequential_Prophet_5","Korg_M1"],
+"Electronic":["Sequential_Prophet_5","Oberheim_OB-Xa","Roland_Juno-106","Moog_Minimoog_Model_D","ARP_2600","Korg_MS-20","Roland_D-50"],
+"Ambient":["Roland_Juno-106","Sequential_Prophet_5","Oberheim_OB-Xa","Moog_Minimoog_Model_D","Korg_M1","ARP_2600","Mellotron_M400"],
+"Metal":["Hammond_B3_organ","Sequential_Prophet_5","Oberheim_OB-Xa","Korg_M1","Roland_D-50","ARP_2600","Mellotron_M400"],
+"Post-Rock":["Fender_Rhodes_Stage_Piano","Rhodes_Mark_II_electric_piano","Hammond_B3_organ","Sequential_Prophet_5","Roland_Juno-106","Mellotron_M400","Korg_M1"],
+"Psychedelic":["Hammond_B3_organ","Mellotron_M400","ARP_2600","Fender_Rhodes_Stage_Piano","Wurlitzer_200_electric_piano","Sequential_Prophet_5","Moog_Minimoog_Model_D"],
+"Folk":["Steinway_grand_piano","Bluthner_upright_piano","Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Hammond_B3_organ","Mellotron_M400","Fender_Rhodes_Stage_Piano"],
+"Classical / Orchestral":["Steinway_grand_piano","Bluthner_upright_piano","Bosendorfer_290_Imperial","Mellotron_M400","Hammond_B3_organ","Chamberlin_M1_tape_sampler","Rhodes_Mark_II_electric_piano"],
+"Drum & Bass":["Roland_Juno-106","Sequential_Prophet_5","Oberheim_OB-Xa","Korg_M1","Roland_D-50","ARP_2600","Moog_Minimoog_Model_D"],
+"Punk":["Hammond_B3_organ","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Roland_Juno-106","Korg_M1","Sequential_Prophet_5","Fender_Rhodes_Stage_Piano"],
+"Shoegaze":["Roland_Juno-106","Sequential_Prophet_5","Oberheim_OB-Xa","Fender_Rhodes_Stage_Piano","Mellotron_M400","Korg_M1","Roland_D-50"],
+"Dark Folk":["Mellotron_M400","Hammond_B3_organ","Steinway_grand_piano","Bluthner_upright_piano","Rhodes_Mark_II_electric_piano","Chamberlin_M1_tape_sampler","ARP_2600"],
+"Bardcore / Medieval":["Mellotron_M400","Chamberlin_M1_tape_sampler","Steinway_grand_piano","Bluthner_upright_piano","Bosendorfer_290_Imperial","Hammond_B3_organ","ARP_2600"],
+"Hyperpop":["Korg_M1","Roland_D-50","Sequential_Prophet_5","Oberheim_OB-Xa","Roland_Juno-106","Yamaha_DX7","ARP_2600"],
+"Phonk":["Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Hammond_B3_organ","Korg_M1","Roland_Juno-106","Fender_Rhodes_Stage_Piano","Sequential_Prophet_5"],
+"Afrobeats / Amapiano":["Korg_M1","Roland_Juno-106","Yamaha_DX7","Sequential_Prophet_5","Oberheim_OB-Xa","Rhodes_Mark_II_electric_piano","Roland_D-50"],
+"Lo-Fi Hip-Hop":["Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Fender_Rhodes_Stage_Piano","Hammond_B3_organ","Steinway_grand_piano","Bluthner_upright_piano","Korg_M1"],
+"Synthwave / Retrowave":["Sequential_Prophet_5","Oberheim_OB-Xa","Roland_Juno-106","Yamaha_DX7","Moog_Minimoog_Model_D","ARP_2600","Korg_M1"],
+"Nu-Metal":["Hammond_B3_organ","Korg_M1","Sequential_Prophet_5","Oberheim_OB-Xa","Roland_D-50","ARP_2600","Moog_Minimoog_Model_D"],
+"Indie Electronic / Dream Pop":["Roland_Juno-106","Sequential_Prophet_5","Oberheim_OB-Xa","Fender_Rhodes_Stage_Piano","Mellotron_M400","Korg_M1","Roland_D-50"],
+"Latin Trap / Reggaeton":["Korg_M1","Roland_Juno-106","Yamaha_DX7","Sequential_Prophet_5","Oberheim_OB-Xa","Roland_D-50","Moog_Minimoog_Model_D"],
+"IDM / Glitch":["Sequential_Prophet_5","Oberheim_OB-Xa","Roland_Juno-106","Moog_Minimoog_Model_D","ARP_2600","Korg_MS-20","Roland_D-50"],
+"Gospel / Sacred":["Hammond_B3_organ","Steinway_grand_piano","Bluthner_upright_piano","Wurlitzer_200_electric_piano","Rhodes_Mark_II_electric_piano","Fender_Rhodes_Stage_Piano","Bosendorfer_290_Imperial"],
+"Noise Rock / No Wave":["Hammond_B3_organ","Sequential_Prophet_5","ARP_2600","Moog_Minimoog_Model_D","Korg_MS-20","Roland_Juno-106","Oberheim_OB-Xa"],
+"Jazz (Classic / Hard Bop)":["Steinway_grand_piano","Bluthner_upright_piano","Bosendorfer_290_Imperial","Rhodes_Mark_II_electric_piano","Wurlitzer_200_electric_piano","Hammond_B3_organ","Fender_Rhodes_Stage_Piano"]
+},
+
+reverbs:{
+"Dub / Reggae":["Roland_Space_Echo_RE201","King_Tubby_spring_tank","Marshall_spring_reverb_tank","AMS_RMX16_decay_2.8s","EMT_140_plate","Roland_SRE-555_Chorus_Echo","Lexicon_480L_hall"],
+"Industrial":["AMS_RMX16_decay_2.8s","Lexicon_480L_hall","EMT_140_plate","Bricasti_M7_large_hall","Eventide_SP2016_room","Roland_Space_Echo_RE201","Fairchild_670_echo_chamber"],
+"Grunge":["AMS_RMX16_small_room","EMT_140_plate","Lexicon_480L_room","Roland_Space_Echo_RE201","Eventide_SP2016_room","Bricasti_M7_room","Fairchild_670_echo_chamber"],
+"Jazz-Rap":["AMS_RMX16_decay_1.2s","EMT_140_plate","Lexicon_480L_room","Roland_Space_Echo_RE201","Eventide_SP2016_room","Bricasti_M7_small_room","Capitol_Studios_echo_chamber"],
+"Hip-Hop":["AMS_RMX16_decay_1.2s","EMT_140_plate","Lexicon_480L_room","Roland_Space_Echo_RE201","Eventide_SP2016_room","Bricasti_M7_small_room","Capitol_Studios_echo_chamber"],
+"Blues":["EMT_140_plate","Roland_Space_Echo_RE201","Fender_spring_reverb","AMS_RMX16_small_room","Lexicon_480L_room","Bricasti_M7_room","Capitol_Studios_echo_chamber"],
+"Soul / R&B":["EMT_140_plate","AMS_RMX16_decay_1.2s","Lexicon_480L_room","Fender_spring_reverb","Roland_Space_Echo_RE201","Bricasti_M7_room","Capitol_Studios_echo_chamber"],
+"Funk":["EMT_140_plate","AMS_RMX16_decay_0.8s","Roland_Space_Echo_RE201","Lexicon_480L_room","Fender_spring_reverb","Bricasti_M7_small_room","Capitol_Studios_echo_chamber"],
+"Electronic":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Roland_Space_Echo_RE201","Bricasti_M7_large_hall","Eventide_SP2016_room","Hansa_Meistersaal_IR"],
+"Ambient":["Lexicon_480L_hall","AMS_RMX16_decay_4.0s","Bricasti_M7_large_hall","EMT_140_plate","Eventide_SP2016_infinite","Roland_Space_Echo_RE201","Hansa_Meistersaal_IR"],
+"Metal":["AMS_RMX16_small_room","Lexicon_480L_room","EMT_140_plate","Bricasti_M7_room","Eventide_SP2016_room","Roland_Space_Echo_RE201","Fairchild_670_echo_chamber"],
+"Post-Rock":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Bricasti_M7_large_hall","Roland_Space_Echo_RE201","Eventide_SP2016_room","Hansa_Meistersaal_IR"],
+"Psychedelic":["Roland_Space_Echo_RE201","AMS_RMX16_decay_2.8s","Lexicon_480L_hall","EMT_140_plate","Fender_spring_reverb","Eventide_SP2016_room","Capitol_Studios_echo_chamber"],
+"Folk":["EMT_140_plate","AMS_RMX16_small_room","Fender_spring_reverb","Roland_Space_Echo_RE201","Lexicon_480L_room","Bricasti_M7_room","Capitol_Studios_echo_chamber"],
+"Classical / Orchestral":["Lexicon_480L_hall","Bricasti_M7_large_hall","AMS_RMX16_decay_4.0s","EMT_140_plate","Eventide_SP2016_room","AIR_Lyndhurst_Hall_IR","Capitol_Studios_echo_chamber"],
+"Drum & Bass":["AMS_RMX16_small_room","Lexicon_480L_room","EMT_140_plate","Bricasti_M7_room","Roland_Space_Echo_RE201","Eventide_SP2016_room","Hansa_Meistersaal_IR"],
+"Punk":["AMS_RMX16_small_room","EMT_140_plate","Fender_spring_reverb","Roland_Space_Echo_RE201","Lexicon_480L_room","Eventide_SP2016_room","Fairchild_670_echo_chamber"],
+"Shoegaze":["Lexicon_480L_hall","AMS_RMX16_decay_4.0s","EMT_140_plate","Bricasti_M7_large_hall","Roland_Space_Echo_RE201","Eventide_SP2016_infinite","Hansa_Meistersaal_IR"],
+"Dark Folk":["AMS_RMX16_decay_2.8s","EMT_140_plate","Lexicon_480L_hall","Roland_Space_Echo_RE201","Fender_spring_reverb","Bricasti_M7_room","Hansa_Meistersaal_IR"],
+"Bardcore / Medieval":["Lexicon_480L_hall","Bricasti_M7_large_hall","AMS_RMX16_decay_4.0s","EMT_140_plate","AIR_Lyndhurst_Hall_IR","Eventide_SP2016_room","Hansa_Meistersaal_IR"],
+"Hyperpop":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Bricasti_M7_large_hall","Eventide_SP2016_room","Hansa_Meistersaal_IR","Roland_Space_Echo_RE201"],
+"Phonk":["AMS_RMX16_decay_1.2s","EMT_140_plate","Roland_Space_Echo_RE201","Fender_spring_reverb","Lexicon_480L_room","Bricasti_M7_small_room","Capitol_Studios_echo_chamber"],
+"Afrobeats / Amapiano":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Bricasti_M7_large_hall","Eventide_SP2016_room","Roland_Space_Echo_RE201","Hansa_Meistersaal_IR"],
+"Lo-Fi Hip-Hop":["AMS_RMX16_decay_1.2s","EMT_140_plate","Roland_Space_Echo_RE201","Fender_spring_reverb","Lexicon_480L_room","Capitol_Studios_echo_chamber","Bricasti_M7_small_room"],
+"Synthwave / Retrowave":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Roland_Space_Echo_RE201","Bricasti_M7_large_hall","Hansa_Meistersaal_IR","Capitol_Studios_echo_chamber"],
+"Nu-Metal":["AMS_RMX16_small_room","Lexicon_480L_room","EMT_140_plate","Bricasti_M7_room","Eventide_SP2016_room","Roland_Space_Echo_RE201","Fairchild_670_echo_chamber"],
+"Indie Electronic / Dream Pop":["Lexicon_480L_hall","AMS_RMX16_decay_4.0s","EMT_140_plate","Bricasti_M7_large_hall","Roland_Space_Echo_RE201","Eventide_SP2016_infinite","Hansa_Meistersaal_IR"],
+"Latin Trap / Reggaeton":["AMS_RMX16_decay_1.2s","Lexicon_480L_room","EMT_140_plate","Bricasti_M7_room","Eventide_SP2016_room","Roland_Space_Echo_RE201","Capitol_Studios_echo_chamber"],
+"IDM / Glitch":["Lexicon_480L_hall","AMS_RMX16_decay_4.0s","Bricasti_M7_large_hall","EMT_140_plate","Eventide_SP2016_infinite","Hansa_Meistersaal_IR","Roland_Space_Echo_RE201"],
+"Gospel / Sacred":["Lexicon_480L_hall","AMS_RMX16_decay_2.8s","EMT_140_plate","Bricasti_M7_large_hall","Capitol_Studios_echo_chamber","AIR_Lyndhurst_Hall_IR","Eventide_SP2016_room"],
+"Noise Rock / No Wave":["AMS_RMX16_small_room","EMT_140_plate","Lexicon_480L_room","Roland_Space_Echo_RE201","Eventide_SP2016_room","Bricasti_M7_room","Fairchild_670_echo_chamber"],
+"Jazz (Classic / Hard Bop)":["Capitol_Studios_echo_chamber","EMT_140_plate","AMS_RMX16_decay_1.2s","Lexicon_480L_room","Roland_Space_Echo_RE201","Bricasti_M7_small_room","Fender_spring_reverb"]
+},
+
+delays:{
+"Dub / Reggae":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","Boss_DM-2_analog","Roland_SDE-3000","TC_Electronic_2290","Watkins_Copicat","Binson_Echorec"],
+"Industrial":["TC_Electronic_2290_ping-pong","Eventide_H3000_pitch_shift_delay","Roland_SDE-3000_dotted","Boss_DD-3_digital","Lexicon_PCM42","Korg_SDD-3000","Binson_Echorec"],
+"Grunge":["Boss_DD-3_digital","Roland_SDE-3000","Maestro_Echoplex_EP-3","TC_Electronic_2290","Electro-Harmonix_Memory_Man","MXR_Carbon_Copy","Korg_SDD-3000"],
+"Jazz-Rap":["Roland_SDE-3000","TC_Electronic_2290","Maestro_Echoplex_EP-3","Boss_DM-2_analog","Eventide_H3000","Lexicon_PCM42","Binson_Echorec"],
+"Hip-Hop":["Roland_SDE-3000","TC_Electronic_2290","Boss_DD-3_digital","Eventide_H3000","Lexicon_PCM42","Korg_SDD-3000","Maestro_Echoplex_EP-3"],
+"Blues":["Maestro_Echoplex_EP-3","Roland_Space_Echo_RE201","Boss_DM-2_analog","Watkins_Copicat","Electro-Harmonix_Memory_Man","MXR_Carbon_Copy","Binson_Echorec"],
+"Soul / R&B":["Roland_SDE-3000","TC_Electronic_2290","Maestro_Echoplex_EP-3","Roland_Space_Echo_RE201","Boss_DD-3_digital","Lexicon_PCM42","Binson_Echorec"],
+"Funk":["Roland_Space_Echo_RE201","Boss_DD-3_digital","Maestro_Echoplex_EP-3","TC_Electronic_2290","Roland_SDE-3000","Electro-Harmonix_Memory_Man","Binson_Echorec"],
+"Electronic":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000_pitch_shift","Lexicon_PCM42","Korg_SDD-3000","Boss_DD-3_digital","Binson_Echorec"],
+"Ambient":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000_pitch_shift","Lexicon_PCM42","Boss_DD-3_digital","Korg_SDD-3000","Binson_Echorec"],
+"Metal":["TC_Electronic_2290","Boss_DD-3_digital","Roland_SDE-3000","Eventide_H3000","Korg_SDD-3000","Lexicon_PCM42","MXR_Carbon_Copy"],
+"Post-Rock":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000","Lexicon_PCM42","Boss_DD-3_digital","Korg_SDD-3000","Electro-Harmonix_Memory_Man"],
+"Psychedelic":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","Watkins_Copicat","TC_Electronic_2290","Electro-Harmonix_Memory_Man","Boss_DM-2_analog","Binson_Echorec"],
+"Folk":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","Boss_DM-2_analog","Watkins_Copicat","TC_Electronic_2290","Electro-Harmonix_Memory_Man","Binson_Echorec"],
+"Classical / Orchestral":["TC_Electronic_2290","Lexicon_PCM42","Roland_SDE-3000","Eventide_H3000","Boss_DD-3_digital","Korg_SDD-3000","Binson_Echorec"],
+"Drum & Bass":["TC_Electronic_2290","Roland_SDE-3000","Eventide_H3000_pitch_shift","Boss_DD-3_digital","Lexicon_PCM42","Korg_SDD-3000","Roland_Space_Echo_RE201"],
+"Punk":["Boss_DD-3_digital","Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","TC_Electronic_2290","MXR_Carbon_Copy","Boss_DM-2_analog","Korg_SDD-3000"],
+"Shoegaze":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000_pitch_shift","Lexicon_PCM42","Electro-Harmonix_Memory_Man","Boss_DD-3_digital","Korg_SDD-3000"],
+"Dark Folk":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","TC_Electronic_2290","Boss_DM-2_analog","Watkins_Copicat","Electro-Harmonix_Memory_Man","Binson_Echorec"],
+"Bardcore / Medieval":["Roland_Space_Echo_RE201","TC_Electronic_2290","Lexicon_PCM42","Eventide_H3000","Boss_DD-3_digital","Korg_SDD-3000","Binson_Echorec"],
+"Hyperpop":["TC_Electronic_2290_ping-pong","Eventide_H3000_pitch_shift","Boss_DD-3_digital","Roland_SDE-3000","Lexicon_PCM42","Korg_SDD-3000","Roland_Space_Echo_RE201"],
+"Phonk":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","Boss_DM-2_analog","TC_Electronic_2290","Roland_SDE-3000","Binson_Echorec","Electro-Harmonix_Memory_Man"],
+"Afrobeats / Amapiano":["TC_Electronic_2290","Boss_DD-3_digital","Roland_SDE-3000","Eventide_H3000","Lexicon_PCM42","Korg_SDD-3000","Roland_Space_Echo_RE201"],
+"Lo-Fi Hip-Hop":["Roland_Space_Echo_RE201","Maestro_Echoplex_EP-3","Boss_DM-2_analog","Watkins_Copicat","TC_Electronic_2290","Binson_Echorec","Electro-Harmonix_Memory_Man"],
+"Synthwave / Retrowave":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000_pitch_shift","Lexicon_PCM42","Korg_SDD-3000","Boss_DD-3_digital","Binson_Echorec"],
+"Nu-Metal":["TC_Electronic_2290","Boss_DD-3_digital","Roland_SDE-3000","Eventide_H3000","Korg_SDD-3000","MXR_Carbon_Copy","Lexicon_PCM42"],
+"Indie Electronic / Dream Pop":["Roland_Space_Echo_RE201","TC_Electronic_2290","Eventide_H3000_pitch_shift","Lexicon_PCM42","Electro-Harmonix_Memory_Man","Boss_DD-3_digital","Korg_SDD-3000"],
+"Latin Trap / Reggaeton":["TC_Electronic_2290","Boss_DD-3_digital","Roland_SDE-3000","Eventide_H3000","Lexicon_PCM42","Korg_SDD-3000","Roland_Space_Echo_RE201"],
+"IDM / Glitch":["TC_Electronic_2290_ping-pong","Eventide_H3000_pitch_shift","Boss_DD-3_digital","Roland_SDE-3000","Lexicon_PCM42","Korg_SDD-3000","Roland_Space_Echo_RE201"],
+"Gospel / Sacred":["Roland_SDE-3000","TC_Electronic_2290","Maestro_Echoplex_EP-3","Roland_Space_Echo_RE201","Lexicon_PCM42","Binson_Echorec","Boss_DD-3_digital"],
+"Noise Rock / No Wave":["Boss_DD-3_digital","Roland_Space_Echo_RE201","TC_Electronic_2290","Electro-Harmonix_Memory_Man","MXR_Carbon_Copy","Maestro_Echoplex_EP-3","Korg_SDD-3000"],
+"Jazz (Classic / Hard Bop)":["Maestro_Echoplex_EP-3","Roland_Space_Echo_RE201","Boss_DM-2_analog","Watkins_Copicat","Binson_Echorec","TC_Electronic_2290","Electro-Harmonix_Memory_Man"]
+},
+
+mods:{
+"Dub / Reggae":["Boss_CE-1_chorus","Roland_Dimension_D","MXR_Phase_100","Electro-Harmonix_Small_Clone","Uni-Vibe_rotary","Maestro_PS-1_phaser","Roland_SRE-555"],
+"Industrial":["Eventide_H3000_thru-zero_flange","MXR_Phase_90","Boss_CE-1_chorus","Roland_Dimension_D","Electro-Harmonix_Electric_Mistress","TC_Electronic_SCF","ARP_2600_filter_mod"],
+"Grunge":["MXR_Phase_90","Boss_CE-2_chorus","Electro-Harmonix_Small_Clone","Roland_Dimension_D","Uni-Vibe_rotary","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress"],
+"Jazz-Rap":["Boss_CE-1_chorus","Roland_Dimension_D","MXR_Phase_90","Uni-Vibe_rotary","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Hip-Hop":["Boss_CE-1_chorus","Roland_Dimension_D","MXR_Phase_90","TC_Electronic_SCF","Eventide_H3000_pitch_shift","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Blues":["Uni-Vibe_rotary","Maestro_PS-1_phaser","MXR_Phase_90","Boss_CE-1_chorus","Electro-Harmonix_Electric_Mistress","Roland_Dimension_D","Roland_SRE-555"],
+"Soul / R&B":["Uni-Vibe_rotary","Roland_Dimension_D","Boss_CE-1_chorus","MXR_Phase_100","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Funk":["Uni-Vibe_rotary","MXR_Phase_90","Boss_CE-1_chorus","Roland_Dimension_D","Maestro_PS-1_phaser","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress"],
+"Electronic":["Roland_Dimension_D","Eventide_H3000_pitch_shift","Boss_CE-1_chorus","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Ambient":["Roland_Dimension_D","Boss_CE-1_chorus","Eventide_H3000_pitch_shift","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Uni-Vibe_rotary","ARP_2600_filter_mod"],
+"Metal":["MXR_Phase_90","Eventide_H3000_thru-zero_flange","Boss_CE-2_chorus","Roland_Dimension_D","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Post-Rock":["Roland_Dimension_D","Boss_CE-1_chorus","Eventide_H3000_pitch_shift","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Psychedelic":["Uni-Vibe_rotary","MXR_Phase_100","Maestro_PS-1_phaser","Electro-Harmonix_Electric_Mistress","Boss_CE-1_chorus","Roland_Dimension_D","ARP_2600_filter_mod"],
+"Folk":["Roland_Dimension_D","Boss_CE-1_chorus","Uni-Vibe_rotary","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Classical / Orchestral":["Roland_Dimension_D","Boss_CE-1_chorus","TC_Electronic_SCF","Uni-Vibe_rotary","Eventide_H3000_pitch_shift","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Drum & Bass":["Roland_Dimension_D","Eventide_H3000_pitch_shift","Boss_CE-1_chorus","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Punk":["MXR_Phase_90","Boss_CE-2_chorus","Roland_Dimension_D","Electro-Harmonix_Electric_Mistress","TC_Electronic_SCF","Uni-Vibe_rotary","Roland_SRE-555"],
+"Shoegaze":["Roland_Dimension_D","Eventide_H3000_thru-zero_flange","Boss_CE-2_chorus","Electro-Harmonix_Electric_Mistress","MXR_Phase_90","TC_Electronic_SCF","ARP_2600_filter_mod"],
+"Dark Folk":["Roland_Dimension_D","Boss_CE-1_chorus","Uni-Vibe_rotary","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","Roland_SRE-555"],
+"Bardcore / Medieval":["Roland_Dimension_D","Boss_CE-1_chorus","Uni-Vibe_rotary","TC_Electronic_SCF","Eventide_H3000_pitch_shift","Electro-Harmonix_Small_Clone","ARP_2600_filter_mod"],
+"Hyperpop":["Eventide_H3000_pitch_shift","Roland_Dimension_D","TC_Electronic_SCF","Boss_CE-1_chorus","MXR_Phase_90","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Phonk":["Boss_CE-1_chorus","Roland_Dimension_D","MXR_Phase_90","Uni-Vibe_rotary","TC_Electronic_SCF","Maestro_PS-1_phaser","Roland_SRE-555"],
+"Afrobeats / Amapiano":["Roland_Dimension_D","Boss_CE-1_chorus","TC_Electronic_SCF","MXR_Phase_90","Eventide_H3000_pitch_shift","Electro-Harmonix_Small_Clone","ARP_2600_filter_mod"],
+"Lo-Fi Hip-Hop":["Boss_CE-1_chorus","Roland_Dimension_D","Uni-Vibe_rotary","MXR_Phase_90","TC_Electronic_SCF","Maestro_PS-1_phaser","Roland_SRE-555"],
+"Synthwave / Retrowave":["Roland_Dimension_D","Eventide_H3000_pitch_shift","Boss_CE-1_chorus","MXR_Phase_90","TC_Electronic_SCF","ARP_2600_filter_mod","Electro-Harmonix_Electric_Mistress"],
+"Nu-Metal":["MXR_Phase_90","Boss_CE-2_chorus","Eventide_H3000_thru-zero_flange","Roland_Dimension_D","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Indie Electronic / Dream Pop":["Roland_Dimension_D","Boss_CE-1_chorus","Eventide_H3000_pitch_shift","MXR_Phase_90","TC_Electronic_SCF","Electro-Harmonix_Small_Clone","ARP_2600_filter_mod"],
+"Latin Trap / Reggaeton":["Roland_Dimension_D","TC_Electronic_SCF","Boss_CE-1_chorus","MXR_Phase_90","Eventide_H3000_pitch_shift","Electro-Harmonix_Small_Clone","ARP_2600_filter_mod"],
+"IDM / Glitch":["Eventide_H3000_thru-zero_flange","Roland_Dimension_D","Boss_CE-1_chorus","MXR_Phase_90","TC_Electronic_SCF","ARP_2600_filter_mod","Electro-Harmonix_Electric_Mistress"],
+"Gospel / Sacred":["Hammond_B3_Leslie_rotary","Uni-Vibe_rotary","Roland_Dimension_D","Boss_CE-1_chorus","MXR_Phase_100","TC_Electronic_SCF","Electro-Harmonix_Small_Clone"],
+"Noise Rock / No Wave":["MXR_Phase_90","Eventide_H3000_thru-zero_flange","Boss_CE-2_chorus","Roland_Dimension_D","TC_Electronic_SCF","Electro-Harmonix_Electric_Mistress","ARP_2600_filter_mod"],
+"Jazz (Classic / Hard Bop)":["Uni-Vibe_rotary","Boss_CE-1_chorus","Roland_Dimension_D","MXR_Phase_90","TC_Electronic_SCF","Maestro_PS-1_phaser","Roland_SRE-555"]
+},
+
+drives:{
+"Dub / Reggae":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_Blues_Driver_mild","Ibanez_TS9_Tube_Screamer_mild","MXR_Distortion_Plus_light","ProCo_Rat_mild","Fulltone_OCD_light","Klon_Centaur_mild"],
+"Industrial":["Electro-Harmonix_Big_Muff","ProCo_Rat_full","MXR_Distortion_Plus","Boss_DS-1_Distortion","Fuzz_Face_germanium","Way_Huge_Swollen_Pickle","Klon_Centaur_pushed"],
+"Grunge":["Electro-Harmonix_Big_Muff","ProCo_Rat_full","Boss_DS-1_Distortion","Ibanez_TS9_pushed","Fuzz_Face_germanium","MXR_Distortion_Plus","Klon_Centaur_pushed"],
+"Jazz-Rap":["Electro-Harmonix_Soul_Food_light","Ibanez_TS9_mild","Boss_BD-2_Blues_Driver_mild","ProCo_Rat_mild","Fulltone_OCD_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Hip-Hop":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","SP-1200_tape_saturation","MPC_3000_bit_crush","ProCo_Rat_mild","Klon_Centaur_mild"],
+"Blues":["Ibanez_TS9_Tube_Screamer","Boss_BD-2_Blues_Driver","Fulltone_OCD","Electro-Harmonix_Soul_Food","ProCo_Rat_mild","Fuzz_Face_germanium","Klon_Centaur_pushed"],
+"Soul / R&B":["Electro-Harmonix_Soul_Food_light","Ibanez_TS9_mild","Boss_BD-2_mild","Fulltone_OCD_light","ProCo_Rat_mild","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Funk":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_mild","Fuzz_Face_germanium_mild","Klon_Centaur_mild"],
+"Electronic":["Electro-Harmonix_Big_Muff_mild","ProCo_Rat_light","Boss_DS-1_light","Fuzz_Face_silicon","MXR_Distortion_Plus_light","Way_Huge_Swollen_Pickle_light","Klon_Centaur_mild"],
+"Ambient":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fuzz_Face_germanium_light","ProCo_Rat_light","Fulltone_OCD_light","Klon_Centaur_mild"],
+"Metal":["ProCo_Rat_full","Boss_DS-1_Distortion","Electro-Harmonix_Big_Muff","MXR_Distortion_Plus","Way_Huge_Swollen_Pickle","Fuzz_Face_silicon","Boss_MT-2_Metal_Zone"],
+"Post-Rock":["Electro-Harmonix_Big_Muff","ProCo_Rat_full","Boss_DS-1_Distortion","Fuzz_Face_germanium","Ibanez_TS9_pushed","Fulltone_OCD","Klon_Centaur_pushed"],
+"Psychedelic":["Fuzz_Face_germanium","Electro-Harmonix_Big_Muff","ProCo_Rat_mild","Ibanez_TS9_mild","Way_Huge_Swollen_Pickle","Maestro_Fuzz-Tone","Klon_Centaur_mild"],
+"Folk":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Classical / Orchestral":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Drum & Bass":["ProCo_Rat_full","Boss_DS-1_Distortion","Electro-Harmonix_Big_Muff","MXR_Distortion_Plus","Fuzz_Face_silicon","Way_Huge_Swollen_Pickle","Boss_MT-2_Metal_Zone"],
+"Punk":["ProCo_Rat_full","Boss_DS-1_Distortion","Electro-Harmonix_Big_Muff","MXR_Distortion_Plus","Fuzz_Face_silicon","Boss_SD-1_Super_Overdrive","Boss_MT-2_Metal_Zone"],
+"Shoegaze":["Electro-Harmonix_Big_Muff","Fuzz_Face_germanium","ProCo_Rat_full","Boss_DS-1_Distortion","Way_Huge_Swollen_Pickle","Ibanez_TS9_pushed","Klon_Centaur_pushed"],
+"Dark Folk":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Fuzz_Face_germanium_light","ProCo_Rat_light","Ibanez_TS9_mild","Fulltone_OCD_light","Klon_Centaur_mild"],
+"Bardcore / Medieval":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_light","Fuzz_Face_germanium_light","Klon_Centaur_mild"],
+"Hyperpop":["Boss_DS-1_Distortion","Electro-Harmonix_Big_Muff","ProCo_Rat_full","MXR_Distortion_Plus","Fuzz_Face_silicon","Way_Huge_Swollen_Pickle","Boss_MT-2_Metal_Zone"],
+"Phonk":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","ProCo_Rat_mild","Fuzz_Face_germanium_mild","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Afrobeats / Amapiano":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Lo-Fi Hip-Hop":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fuzz_Face_germanium_light","ProCo_Rat_light","Fulltone_OCD_light","Klon_Centaur_mild"],
+"Synthwave / Retrowave":["Electro-Harmonix_Big_Muff_mild","ProCo_Rat_light","Boss_DS-1_light","Fuzz_Face_silicon","MXR_Distortion_Plus_light","Way_Huge_Swollen_Pickle_light","Klon_Centaur_mild"],
+"Nu-Metal":["ProCo_Rat_full","Boss_DS-1_Distortion","Electro-Harmonix_Big_Muff","MXR_Distortion_Plus","Way_Huge_Swollen_Pickle","Fuzz_Face_silicon","Boss_MT-2_Metal_Zone"],
+"Indie Electronic / Dream Pop":["Electro-Harmonix_Big_Muff","Fuzz_Face_germanium","ProCo_Rat_mild","Ibanez_TS9_mild","Fulltone_OCD_light","Electro-Harmonix_Soul_Food_light","Klon_Centaur_mild"],
+"Latin Trap / Reggaeton":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_mild","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"IDM / Glitch":["Electro-Harmonix_Big_Muff_mild","ProCo_Rat_light","Boss_DS-1_light","Fuzz_Face_silicon","MXR_Distortion_Plus_light","Way_Huge_Swollen_Pickle_light","Klon_Centaur_mild"],
+"Gospel / Sacred":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Ibanez_TS9_mild","Fulltone_OCD_light","ProCo_Rat_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"],
+"Noise Rock / No Wave":["Electro-Harmonix_Big_Muff","ProCo_Rat_full","Boss_DS-1_Distortion","MXR_Distortion_Plus","Fuzz_Face_silicon","Way_Huge_Swollen_Pickle","Boss_MT-2_Metal_Zone"],
+"Jazz (Classic / Hard Bop)":["Electro-Harmonix_Soul_Food_light","Boss_BD-2_mild","Fulltone_OCD_light","Ibanez_TS9_mild","ProCo_Rat_light","MXR_Distortion_Plus_light","Klon_Centaur_mild"]
+},
+
+comps:{
+"Dub / Reggae":["Urei_1176_fast_attack","dbx_160_limiting","API_2500_bus","Neve_33609_gentle","SSL_G-Bus_comp","Teletronix_LA-2A_optical","Fairchild_670_limiting"],
+"Industrial":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Grunge":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","Neve_33609_character","Empirical_Labs_Distressor","API_2500_bus","Fairchild_670_limiting"],
+"Jazz-Rap":["Teletronix_LA-2A_optical","Urei_1176_fast_attack","Neve_33609_gentle","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Hip-Hop":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Blues":["Teletronix_LA-2A_optical","Urei_1176_fast_attack","Neve_33609_gentle","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Soul / R&B":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_fast_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Funk":["Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","SSL_G-Bus_comp","Neve_33609_character","Teletronix_LA-2A_optical","Fairchild_670_limiting"],
+"Electronic":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Ambient":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Metal":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Post-Rock":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_fast_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Psychedelic":["Teletronix_LA-2A_optical","Urei_1176_fast_attack","Neve_33609_gentle","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Folk":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Classical / Orchestral":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Drum & Bass":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Punk":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Shoegaze":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_fast_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Dark Folk":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Bardcore / Medieval":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Hyperpop":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Phonk":["Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","SSL_G-Bus_comp","Neve_33609_character","Teletronix_LA-2A_optical","Fairchild_670_limiting"],
+"Afrobeats / Amapiano":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Lo-Fi Hip-Hop":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Synthwave / Retrowave":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","Neve_33609_character","API_2500_bus","Teletronix_LA-2A_optical","Fairchild_670_limiting"],
+"Nu-Metal":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Indie Electronic / Dream Pop":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp","Fairchild_670_limiting"],
+"Latin Trap / Reggaeton":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"IDM / Glitch":["SSL_G-Bus_comp","Urei_1176_fast_attack","dbx_160_hard_limiting","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Gospel / Sacred":["Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","Fairchild_670_limiting","API_2500_bus","SSL_G-Bus_comp"],
+"Noise Rock / No Wave":["Urei_1176_fast_attack","dbx_160_hard_limiting","SSL_G-Bus_comp","API_2500_bus","Neve_33609_character","Empirical_Labs_Distressor","Fairchild_670_limiting"],
+"Jazz (Classic / Hard Bop)":["Fairchild_670_limiting","Teletronix_LA-2A_optical","Neve_33609_gentle","Urei_1176_slow_attack","dbx_160_limiting","API_2500_bus","SSL_G-Bus_comp"]
+},
+
+drums:{
+"Dub / Reggae":["Roland_TR-808","Sly_Dunbar_live_kit","Ludwig_Acrolite_snare","Rogers_Powertone_kit","Premier_kit_1970s","Rhythm_Ace_FR-6_drum_machine","Sequential_Circuits_Drumtraks"],
+"Industrial":["Roland_TR-909","Roland_TR-808","Linn_LM-1","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Oberheim_DMX"],
+"Grunge":["Ludwig_Classic_Maple_kit","Pearl_Export_kit","DW_kit","Slingerland_kit","Gretsch_Broadkaster_kit","Ludwig_Acrolite_snare","Premier_kit_1970s"],
+"Jazz-Rap":["E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Roland_TR-808","Linn_LM-1","Oberheim_DMX","SP-1200_drum_chop"],
+"Hip-Hop":["E-mu_SP-1200","MPC3000_sampler","Roland_TR-808","Akai_MPC60","Roland_TR-909","Linn_LM-1","Oberheim_DMX"],
+"Blues":["Ludwig_Classic_Maple_kit","Slingerland_kit","Gretsch_Broadkaster_kit","Rogers_Powertone_kit","Ludwig_Acrolite_snare","Premier_kit_1970s","Leedy_kit_1950s"],
+"Soul / R&B":["Ludwig_Classic_Maple_kit","Rogers_Powertone_kit","Gretsch_Broadkaster_kit","Slingerland_kit","Premier_kit_1970s","Linn_LM-1","MPC3000_sampler"],
+"Funk":["Ludwig_Classic_Maple_kit","Rogers_Powertone_kit","Gretsch_Broadkaster_kit","Slingerland_kit","Linn_LM-1","Roland_TR-808","MPC3000_sampler"],
+"Electronic":["Roland_TR-909","Roland_TR-808","Linn_LM-1","Oberheim_DMX","Sequential_Circuits_Drumtraks","E-mu_SP-1200","Roland_CR-78"],
+"Ambient":["Roland_TR-909","Roland_TR-808","Linn_LM-1","E-mu_SP-1200","MPC3000_sampler","Ludwig_Classic_Maple_kit_brushed","Roland_CR-78"],
+"Metal":["Pearl_Export_kit","DW_kit","Tama_Starclassic_kit","Ludwig_Classic_Maple_kit","Gretsch_Broadkaster_kit","Pearl_Free_Floating_snare","DW_collectors_kit"],
+"Post-Rock":["Ludwig_Classic_Maple_kit","Pearl_Export_kit","DW_kit","Gretsch_Broadkaster_kit","Roland_TR-909","MPC3000_sampler","Linn_LM-1"],
+"Psychedelic":["Ludwig_Classic_Maple_kit","Slingerland_kit","Gretsch_Broadkaster_kit","Rogers_Powertone_kit","Premier_kit_1970s","Ludwig_Acrolite_snare","Rhythm_Ace_FR-6_drum_machine"],
+"Folk":["Ludwig_Classic_Maple_kit_brushed","Slingerland_kit","Gretsch_Broadkaster_kit","Rogers_Powertone_kit","Premier_kit_1970s","Ludwig_Acrolite_snare","Leedy_kit_1950s"],
+"Classical / Orchestral":["Ludwig_Classic_Maple_kit","Premier_orchestral_kit","Gretsch_Broadkaster_kit","Zildjian_orchestral_cymbals","Roland_TR-909","Linn_LM-1","Yamaha_orchestral_kit"],
+"Drum & Bass":["Roland_TR-909","Roland_TR-808","Amen_break_Winstons_sample","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Linn_LM-1"],
+"Punk":["Ludwig_Acrolite_snare","Pearl_Export_kit","Ludwig_Classic_Maple_kit","Rogers_Powertone_kit","Slingerland_kit","Premier_kit_1970s","Gretsch_Broadkaster_kit"],
+"Shoegaze":["Ludwig_Classic_Maple_kit","Pearl_Export_kit","Gretsch_Broadkaster_kit","Roland_TR-909","Linn_LM-1","MPC3000_sampler","E-mu_SP-1200"],
+"Dark Folk":["Ludwig_Classic_Maple_kit_brushed","Slingerland_kit","Rogers_Powertone_kit","Premier_kit_1970s","Roland_TR-808","Linn_LM-1","Ludwig_Acrolite_snare"],
+"Bardcore / Medieval":["Ludwig_Classic_Maple_kit","Premier_orchestral_kit","Gretsch_Broadkaster_kit","Roland_TR-909","Linn_LM-1","Zildjian_orchestral_cymbals","Yamaha_orchestral_kit"],
+"Hyperpop":["Roland_TR-909","Roland_TR-808","Linn_LM-1","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Oberheim_DMX"],
+"Phonk":["Roland_TR-808","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Linn_LM-1","Roland_TR-909","Oberheim_DMX"],
+"Afrobeats / Amapiano":["Roland_TR-909","Roland_TR-808","MPC3000_sampler","Akai_MPC60","E-mu_SP-1200","Linn_LM-1","Sequential_Circuits_Drumtraks"],
+"Lo-Fi Hip-Hop":["E-mu_SP-1200","MPC3000_sampler","Roland_TR-808","Akai_MPC60","Linn_LM-1","Ludwig_Classic_Maple_kit_brushed","Oberheim_DMX"],
+"Synthwave / Retrowave":["Roland_TR-909","Roland_TR-808","Linn_LM-1","Oberheim_DMX","Sequential_Circuits_Drumtraks","Roland_CR-78","E-mu_SP-1200"],
+"Nu-Metal":["Pearl_Export_kit","DW_kit","Tama_Starclassic_kit","Ludwig_Classic_Maple_kit","Roland_TR-808","MPC3000_sampler","E-mu_SP-1200"],
+"Indie Electronic / Dream Pop":["Roland_TR-909","Roland_TR-808","Linn_LM-1","Ludwig_Classic_Maple_kit","E-mu_SP-1200","MPC3000_sampler","Pearl_Export_kit"],
+"Latin Trap / Reggaeton":["Roland_TR-808","Roland_TR-909","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Linn_LM-1","Oberheim_DMX"],
+"IDM / Glitch":["Roland_TR-909","Roland_TR-808","E-mu_SP-1200","MPC3000_sampler","Akai_MPC60","Linn_LM-1","Amen_break_Winstons_sample"],
+"Gospel / Sacred":["Ludwig_Classic_Maple_kit","Rogers_Powertone_kit","Gretsch_Broadkaster_kit","Pearl_Export_kit","Slingerland_kit","Premier_kit_1970s","DW_kit"],
+"Noise Rock / No Wave":["Ludwig_Classic_Maple_kit","Pearl_Export_kit","Rogers_Powertone_kit","Slingerland_kit","Ludwig_Acrolite_snare","Premier_kit_1970s","Gretsch_Broadkaster_kit"],
+"Jazz (Classic / Hard Bop)":["Ludwig_Classic_Maple_kit_brushed","Slingerland_kit","Gretsch_Broadkaster_kit","Rogers_Powertone_kit","Premier_kit_1970s","Ludwig_Acrolite_snare","Leedy_kit_1950s"]
+},
+
+discSources:{
+"Dub / Reggae":["Lee_Scratch_Perry_Black_Ark_dub_inspired","King_Tubby_dub_mix_inspired","Burning_Spear_roots_reggae_inspired","Augustus_Pablo_melodica_inspired","The_Upsetters_dub_inspired","Culture_roots_reggae_inspired","Dennis_Brown_lover_rock_inspired"],
+"Industrial":["NIN_Broken_EP_era_industrial_inspired","Einstürzende_Neubauten_found_sound_inspired","KMFDM_industrial_dance_inspired","Ministry_industrial_metal_inspired","Throbbing_Gristle_noise_inspired","Nine_Inch_Nails_Downward_Spiral_inspired","Skinny_Puppy_electro_industrial_inspired"],
+"Grunge":["Soundgarden_superunknown_era_inspired","Nirvana_nevermind_era_inspired","Alice_In_Chains_dirt_era_inspired","Pearl_Jam_vs_era_inspired","Mudhoney_sub_pop_era_inspired","Mad_Season_above_era_inspired","Stone_Temple_Pilots_core_era_inspired"],
+"Jazz-Rap":["A_Tribe_Called_Quest_low_end_theory_inspired","Gang_Starr_step_in_the_arena_inspired","De_La_Soul_buhloone_mindstate_inspired","Pete_Rock_mecca_soul_inspired","Digable_Planets_reachin_inspired","Guru_jazzmatazz_inspired","Us3_hand_on_the_torch_inspired"],
+"Hip-Hop":["Wu-Tang_36_chambers_inspired","Gang_Starr_step_in_the_arena_inspired","Mobb_Deep_infamous_inspired","Nas_illmatic_inspired","Rakim_paid_in_full_inspired","Public_Enemy_it_takes_a_nation_inspired","Jay_Z_reasonable_doubt_inspired"],
+"Blues":["Robert_Johnson_delta_blues_inspired","Muddy_Waters_Chicago_blues_inspired","Howlin_Wolf_Chess_era_inspired","BB_King_Stax_era_inspired","John_Lee_Hooker_Vee_Jay_era_inspired","Lightnin_Hopkins_field_recording_inspired","Son_House_prewar_delta_inspired"],
+"Soul / R&B":["Otis_Redding_Stax_era_inspired","Al_Green_Hi_Records_inspired","Marvin_Gaye_what_going_on_inspired","Aretha_Franklin_Atlantic_era_inspired","James_Brown_JB_records_inspired","Curtis_Mayfield_Curtom_era_inspired","Sam_Cooke_RCA_era_inspired"],
+"Funk":["Parliament_Funkadelic_inspired","James_Brown_JB_records_inspired","Sly_Stone_fresh_inspired","Ohio_Players_Westbound_era_inspired","Bootsy_Collins_rubber_band_inspired","Tower_of_Power_East_Bay_Grease_inspired","Prince_purple_rain_era_inspired"],
+"Electronic":["Kraftwerk_computer_world_inspired","Aphex_Twin_selected_ambient_works_inspired","Boards_of_Canada_music_has_right_inspired","Autechre_tri_repetae_inspired","Orbital_brown_album_inspired","Chemical_Brothers_dig_your_own_hole_inspired","Daft_Punk_homework_era_inspired"],
+"Ambient":["Brian_Eno_ambient_1_inspired","Harold_Budd_pavilion_of_dreams_inspired","Stars_of_the_Lid_refinement_inspired","Tim_Hecker_ravedeath_inspired","William_Basinski_disintegration_loops_inspired","Grouper_dragging_dead_deer_inspired","Sigur_Ros_agaetis_byrjun_inspired"],
+"Metal":["Black_Sabbath_master_of_reality_inspired","Pantera_vulgar_display_inspired","Slayer_reign_in_blood_inspired","Metallica_black_album_inspired","Tool_aenima_inspired","Sepultura_roots_inspired","Soundgarden_badmotorfinger_inspired"],
+"Post-Rock":["Mogwai_young_team_inspired","Godspeed_you_black_emperor_lift_inspired","Explosions_in_the_Sky_the_earth_inspired","Slint_spiderland_inspired","Tortoise_millions_now_living_inspired","Sigur_Ros_agaetis_byrjun_inspired","Dirty_Three_ocean_songs_inspired"],
+"Psychedelic":["Pink_Floyd_piper_at_gates_inspired","Jefferson_Airplane_surrealistic_pillow_inspired","The_Doors_strange_days_inspired","Jimi_Hendrix_electric_ladyland_inspired","Grateful_Dead_american_beauty_inspired","The_13th_Floor_Elevators_inspired","Love_forever_changes_inspired"],
+"Folk":["Nick_Drake_bryter_layter_inspired","Fairport_Convention_liege_and_lief_inspired","Sandy_Denny_north_star_inspired","John_Martyn_solid_air_inspired","Bert_Jansch_Jack_Orion_inspired","Pentangle_basket_of_light_inspired","Tim_Buckley_starsailor_inspired"],
+"Classical / Orchestral":["Angelo_Badalamenti_twin_peaks_inspired","Bernard_Herrmann_vertigo_inspired","Ennio_Morricone_spaghetti_western_inspired","Krzysztof_Penderecki_threnody_inspired","Arvo_Part_tabula_rasa_inspired","John_Coltrane_a_love_supreme_inspired","Miles_Davis_kind_of_blue_inspired"],
+"Drum & Bass":["Goldie_timeless_inspired","LTJ_Bukem_logical_progression_inspired","Dillinja_Valve_Sound_inspired","Photek_modus_operandi_inspired","Roni_Size_reprazent_inspired","Andy_C_Ram_trilogy_inspired","Grooverider_mysteries_of_funk_inspired"],
+"Punk":["Sex_Pistols_never_mind_the_bollocks_inspired","The_Clash_london_calling_inspired","Dead_Kennedys_fresh_fruit_inspired","Black_Flag_damaged_inspired","Buzzcocks_singles_going_steady_inspired","The_Damned_damned_damned_inspired","Ramones_debut_inspired"],
+"Shoegaze":["My_Bloody_Valentine_loveless_inspired","Slowdive_souvlaki_inspired","Ride_nowhere_inspired","Lush_split_inspired","Chapterhouse_whirlpool_inspired","Curve_doppelganger_inspired","Pale_Saints_comforts_of_madness_inspired"],
+"Dark Folk":["Current_93_thunder_perfect_mind_inspired","Death_in_June_but_what_ends_inspired","Coil_horse_rotorvator_inspired","Nick_Drake_pink_moon_inspired","Sol_Invictus_the_blade_inspired","Of_the_Wand_and_the_Moon_inspired","Swans_leaving_meaning_inspired"],
+"Bardcore / Medieval":["Hildegard_von_Bingen_sacred_chant_inspired","Anonymous_4_medieval_polyphony_inspired","Sequentia_carmina_burana_inspired","Jordi_Savall_early_music_inspired","Loreena_McKennitt_celtic_medieval_inspired","In_Extremo_hurdy_gurdy_inspired","Heilung_nordic_folk_inspired"],
+"Hyperpop":["100_gecs_1000_gecs_inspired","Caroline_Polachek_pang_inspired","SOPHIE_oil_of_every_pearls_inspired","Charli_XCX_pop2_inspired","A.G._Cook_7G_inspired","Bladee_exeter_inspired","Dorian_Electra_flamboyant_inspired"],
+"Phonk":["DJ_Smokey_inspired","Three_6_Mafia_mystic_stylez_inspired","Kordhell_murder_in_my_mind_inspired","DVRST_close_eyes_inspired","Soudiere_inspired","Ghostemane_anti_form_inspired","Sematary_rainbow_bridge_inspired"],
+"Afrobeats / Amapiano":["Burna_Boy_african_giant_inspired","Wizkid_made_in_lagos_inspired","Fela_Kuti_zombie_inspired","DBN_Gogo_amapiano_inspired","DJ_Lag_gqom_inspired","Davido_a_better_time_inspired","Ckay_love_nwantiti_inspired"],
+"Lo-Fi Hip-Hop":["Nujabes_modal_soul_inspired","J_Dilla_donuts_inspired","Madlib_shades_of_blue_inspired","Knxwledge_hud_dreems_inspired","Mndsgn_yawn_zen_inspired","Brockhampton_iridescence_inspired","BADBADNOTGOOD_III_inspired"],
+"Synthwave / Retrowave":["Kavinsky_outrun_inspired","Carpenter_Brut_trilogy_inspired","Perturbator_dangerous_days_inspired","Com_Truise_galactic_melt_inspired","Gunship_self_titled_inspired","Lazerhawk_redline_inspired","Makeup_and_Vanity_Set_inspired"],
+"Nu-Metal":["Korn_follow_the_leader_inspired","Linkin_Park_hybrid_theory_inspired","Limp_Bizkit_significant_other_inspired","Slipknot_iowa_inspired","System_of_a_Down_toxicity_inspired","Deftones_white_pony_inspired","Mudvayne_ld50_inspired"],
+"Indie Electronic / Dream Pop":["Beach_House_bloom_inspired","Cigarettes_After_Sex_self_titled_inspired","Washed_Out_mellow_gold_inspired","Tame_Impala_currents_inspired","Wild_Nothing_nocturne_inspired","Neon_Indian_psychic_chasms_inspired","Com_Truise_galactic_melt_inspired"],
+"Latin Trap / Reggaeton":["Bad_Bunny_un_verano_sin_ti_inspired","J_Balvin_colores_inspired","Ozuna_aura_inspired","Daddy_Yankee_barrio_fino_inspired","Anuel_AA_real_hasta_la_muerte_inspired","Maluma_papi_juancho_inspired","Karol_G_ocean_inspired"],
+"IDM / Glitch":["Aphex_Twin_richard_d_james_album_inspired","Autechre_confield_inspired","Boards_of_Canada_geogaddi_inspired","Squarepusher_go_plastic_inspired","Venetian_Snares_rossz_csillag_inspired","Arca_mutant_inspired","Burial_untrue_inspired"],
+"Gospel / Sacred":["Mahalia_Jackson_inspirational_inspired","Kirk_Franklin_nu_nation_project_inspired","Andrae_Crouch_take_me_back_inspired","The_Blind_Boys_of_Alabama_inspired","Sam_Cooke_night_beat_inspired","Al_Green_call_me_inspired","BJ_Thomas_inspired"],
+"Noise Rock / No Wave":["Sonic_Youth_daydream_nation_inspired","Swans_leaving_meaning_inspired","Big_Black_songs_about_fucking_inspired","Jesus_Lizard_goat_inspired","Pixies_doolittle_inspired","Shellac_at_action_park_inspired","Fugazi_repeater_inspired"],
+"Jazz (Classic / Hard Bop)":["Miles_Davis_kind_of_blue_inspired","John_Coltrane_a_love_supreme_inspired","Art_Blakey_moanin_inspired","Sonny_Rollins_saxophone_colossus_inspired","Thelonious_Monk_brilliant_corners_inspired","Charles_Mingus_ah_um_inspired","Bill_Evans_waltz_for_debby_inspired"]
+},
+
+scales:["Phrygian_dominant","Phrygian","Dorian","Aeolian_natural_minor","Lydian","Mixolydian","Whole_tone","Diminished","Chromatic_half-step","Minor_pentatonic","Major_pentatonic","Blues_scale","Harmonic_minor","Melodic_minor","Locrian","Hirajoshi_Japanese","Double_harmonic_major","Hungarian_minor","Enigmatic_scale","Prometheus_scale"],
+intervals:["Descending_chromatic_crawl","Ascending_pentatonic_leap","Tritone_call_minor_2nd_response","Descending_minor_third_step","Ascending_fourth_drop_fifth","Call_answer_mirror","Whole_step_descent","Half_step_tension_resolution","Octave_drop","Drone_with_chromatic_neighbor","Perfect_fifth_power_interval","Minor_sixth_leap","Augmented_second_arabesque","Descending_diminished_seventh","Ascending_major_seventh_reach"],
+calls:["Sustained_feedback_cry","Staccato_horn_stab","Tremolo_picked_single_note","Legato_slide","Bent_blue_note","Reversed_attack","Harmonics_chime","Bowed_string_swell","Breath_noise_attack","Picked_harmonic_squeal","Organ_swell_attack","Vocal_melisma","Brass_glissando","Prepared_piano_cluster","Synthesizer_filter_sweep"],
+responses:["Echo_tail_dominant","Pad_swell_answer","Bass_drone_resolution","Silence_then_sub_pulse","Reversed_vocal_fragment","Orchestral_string_answer","Percussion_accent","Filtered_sweep_reply","Chord_stab_answer","Sustained_single_note","Sub_bass_thud","Vibraphone_decay","Choir_pad_answer","Synthesizer_arpeggio_answer","Drum_roll_resolution"],
+tensions:["Tension_unresolved","Partial_resolution_returns_to_tension","Full_resolution_major_cadence","Deceptive_cadence","Tritone_substitution","Modal_ambiguity","Suspended_chord_no_resolution","Half_cadence_hanging","Chromatic_approach_unresolved","Drone_tonic_no_cadence","Lydian_raised_fourth_floating","Phrygian_half_step_threat","Neapolitan_chord_surprise","Augmented_sixth_resolution","Pedal_point_tension"],
+textures:["High_gain_sustained_feedback","Thru-zero_flange_swells","Shimmer_clean_underneath","Wall_of_guitar_layered","Tremolo_picked_arpeggios","Reverse_guitar_swell","Prepared_piano_mallets","Low_string_drone_bowed","Orchestral_string_swell","Organ_sustained_chord","Synth_pad_slow_attack","Vibraphone_resonance","Dulcimer_modal","Hurdy-gurdy_drone","Hammered_dulcimer","Steel_guitar_lap","Banjo_picked_drone","Acoustic_guitar_fingerpicked","Baritone_guitar_detuned","Sitar_sympathetic_drone","Mellotron_strings","Hammond_B3_drawbar_swell","Rhodes_electric_piano_shimmer","Wurlitzer_tremolo_shimmer","Moog_filter_sweep","Granular_texture_frozen","Choir_breath_pad","Brass_section_stab","String_quartet_pizzicato","Clavinet_funky_chop"],
+edits:["Tape_splice_cut","Bit_crush_stutter","Dropout_flutter","Reverse_drag_pitch_dive","Knife_silence","Buffer_loop_microchirp","Destructive_resample_backwards","Hard_edit_knife_silence","Vinyl_brake_digital","Pitch_shift_down_dive","Granular_freeze_glitch","Sample_rate_reduction","DAT_dropout_stutter","Time_stretch_artifact","Ring_modulator_stutter","Phase_cancellation_null","Tape_saturation_clip","Wow_and_flutter_drift","Reverse_reverb_swell","Spectral_smear"],
+scratches:["Crab-scratch","Chirp","Flare","Transformer","Baby-scratch","Orbit","Boomerang","Back-scratch","Stab-scratch","Slow-autobahn","Micro-orbit","Orbit-ladder","Chirp-ladder","Hydroplane","Edge-tap","Label-flick","Label-pop","Label-drag","Slipmat-tap","Slipmat-drag","Disc-roll","Spin-up_wow","Backspin_wow","Vinyl-break_dip","Tear-scratch","Ghost-beat_re-grid","Scribble_scratch","Twiddle","Flare_orbit","Lasso"],
+exclGenres:["moroccan","maqam","christmas","parody","satire","ska","dancehall","rocksteady","cumbia","bossa_nova","samba","flamenco","bluegrass","country","gospel","hymnal","sea_shanty","polka","tango","waltz","K-pop","J-pop","bubblegum","EDM","trance","house","techno","garage","grime","trap","drill","crunk","emo","screamo","vaporwave","chillwave","bedroom_pop","math_rock","deathcore","grindcore"],
+exclMoods:["uplifting","happy","cheerful","romantic","sentimental","inspirational","triumphant","euphoric","whimsical","playful","carefree","bouncy","sunny","optimistic","hopeful","peaceful","serene","gentle","cute","bubbly"],
+exclInsts:["steel_drum","kettle_drum","accordion","ukulele","bagpipe","kazoo","recorder","harpsichord","banjo","mandolin","sitar","didgeridoo","pan_flute","marimba","xylophone","triangle","cowbell","tambourine","sleigh_bells","glockenspiel","autotune_heavy","vocoder_heavy","talk_box"],
+structures:["Intro","Theme_1","Variation_1","False_Drop_1","Bridge","Interlude","Bridge_2","Build_Up","False_Drop_2","Drop","Theme_2","Variation_2","Final_Drop","Theme_3","Outro_DS_al_Coda","Outro_Coda"]
+};
+
+const SCRATCH_STYLES={
+wutang:{label:"Wu-Tang_DJ_turntable_scratch_vocabulary",techniques:["Crab-scratch","Chirp","Flare","Transformer","Baby-scratch","Orbit","Boomerang","Back-scratch","Stab-scratch","Label-flick","Label-pop","Label-drag","Slipmat-drag","Disc-roll","Spin-up_wow","Backspin_wow","Vinyl-break_dip","Tear-scratch","Ghost-beat_re-grid"]},
+industrial:{label:"Industrial_techno_cut_scratch_vocabulary",techniques:["Transformer","Chirp","Knife_silence_cut","Hard_edit_fader_snap","Bit_crush_stutter_scratch","Buffer_loop_microchirp","Vinyl-break_dip","Backspin_wow","Dropout_flutter_cut","Spin-up_wow","Reverse_drag","Micro-orbit","Disc-roll"]},
+jazz:{label:"Jazz_bebop_turntable_vocabulary",techniques:["Baby-scratch","Slow-autobahn","Hydroplane","Orbit","Boomerang","Edge-tap","Slipmat-tap","Slipmat-drag","Label-drag","Ghost-beat_re-grid","Disc-roll","Back-scratch","Tear-scratch"]},
+dub:{label:"Reggae_dub_selector_scratch_vocabulary",techniques:["Slow-autobahn","Hydroplane","Label-drag","Slipmat-drag","Disc-roll","Baby-scratch","Boomerang","Orbit","Spin-up_wow","Backspin_wow","Edge-tap","Ghost-beat_re-grid","Label-flick"]},
+idm:{label:"IDM_glitch_edit_scratch_vocabulary",techniques:["Micro-orbit","Chirp-ladder","Orbit-ladder","Buffer_loop_microchirp","Bit_crush_stutter_scratch","Dropout_flutter_cut","Hard_edit_fader_snap","Reverse_drag","Vinyl-brake_digital","Ghost-beat_re-grid","Disc-roll","Transformer","Scribble_scratch"]},
+hiphop:{label:"Golden_Era_Hip_Hop_scratch_vocabulary",techniques:["Baby-scratch","Back-scratch","Chirp","Flare","Transformer","Orbit","Boomerang","Stab-scratch","Label-flick","Label-pop","Slipmat-tap","Disc-roll","Spin-up_wow","Backspin_wow","Scribble_scratch","Twiddle"]},
+custom:{label:"Custom_scratch_vocabulary",techniques:[]}
+};
+
+let selectedGenre='Hip-Hop';
+let selectedTextures=[];
+let selectedEdits=[];
+let selectedScratches=[];
+let selectedExclGenre=[];
+let selectedExclMood=[];
+let selectedExclInst=[];
+let selectedStructure=[...DB.structures];
+
+function showPanel(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+function pSel(id,items,withNone){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML=withNone?'<option value="">— none —</option>':'';
+  (items||[]).forEach(item=>{
+    const o=document.createElement('option');
+    const isObj=typeof item==='object';
+    o.value=isObj?item.name:item;
+    o.textContent=isObj?item.label:item.replace(/_/g,' ');
+    el.appendChild(o);
+  });
+}
+
+function makePills(containerId,items,stateArr,isExcl){
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  el.innerHTML='';
+  items.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.className='pill'+(isExcl?' excl':'')+(stateArr.includes(item)?' active':'');
+    btn.textContent=(isExcl?'-':'')+item.replace(/_/g,' ');
+    btn.onclick=()=>{
+      if(stateArr.includes(item)){stateArr.splice(stateArr.indexOf(item),1);btn.classList.remove('active');}
+      else{stateArr.push(item);btn.classList.add('active');}
+    };
+    el.appendChild(btn);
+  });
+}
+
+function buildDiscRows(){
+  const el=document.getElementById('disc-rows');
+  if(!el)return;
+  el.innerHTML='';
+  ['A','B','C','D','E'].forEach(d=>{
+    const row=document.createElement('div');
+    row.className='disc-grid';
+    row.style.marginBottom='8px';
+    const tag=document.createElement('div');
+    tag.className='disc-tag';
+    tag.textContent='Disc '+d;
+    row.appendChild(tag);
+    if(d==='A'){
+      const fix=document.createElement('div');
+      fix.className='disc-fixed';
+      fix.textContent='In-Context_Vocal_Samples (fixed)';
+      row.appendChild(fix);
+    }else if(d==='E'){
+      const fix=document.createElement('div');
+      fix.className='disc-fixed';
+      fix.id='disc-e-label';
+      fix.textContent='Turntable / scratch layer (configured below)';
+      row.appendChild(fix);
+    }else{
+      const sel=document.createElement('select');
+      sel.id='disc-'+d+'-source';
+      const note=document.createElement('input');
+      note.type='text';
+      note.id='disc-'+d+'-note';
+      note.placeholder='additional descriptor (optional)';
+      row.appendChild(sel);
+      row.appendChild(note);
+    }
+    el.appendChild(row);
+  });
+}
+
+function buildStructureChecks(){
+  const el=document.getElementById('structure-checks');
+  if(!el)return;
+  el.innerHTML='';
+  DB.structures.forEach(s=>{
+    const row=document.createElement('div');
+    row.className='struct-item';
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=selectedStructure.includes(s);
+    cb.onchange=()=>{
+      if(cb.checked&&!selectedStructure.includes(s))selectedStructure.push(s);
+      if(!cb.checked)selectedStructure.splice(selectedStructure.indexOf(s),1);
+    };
+    const lbl=document.createElement('span');
+    lbl.textContent=s.replace(/_/g,' ');
+    lbl.style.cursor='pointer';
+    lbl.onclick=()=>{cb.checked=!cb.checked;cb.onchange();};
+    row.appendChild(cb);
+    row.appendChild(lbl);
+    el.appendChild(row);
+  });
+}
+
+function buildGenrePills(){
+  const el=document.getElementById('genre-pills');
+  if(!el)return;
+  el.innerHTML='';
+  DB.genres.forEach(g=>{
+    const btn=document.createElement('button');
+    btn.className='pill'+(g===selectedGenre?' active':'');
+    btn.textContent=g;
+    btn.onclick=()=>{
+      selectedGenre=g;
+      el.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      updateForGenre();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function updateForGenre(){
+  const g=selectedGenre;
+  pSel('studio-primary',DB.studios[g]||[],false);
+  pSel('studio-secondary',[{name:'',label:'— none —'},...(DB.studios[g]||[])],false);
+  pSel('engineer',DB.engineers[g]||[],false);
+  pSel('producer',DB.producers[g]||[],false);
+  pSel('gear-console',DB.consoles[g]||[],false);
+  pSel('gear-tape',DB.tapes[g]||[],false);
+  pSel('gear-preamp',DB.preamps[g]||[],false);
+  pSel('gear-bass',DB.basses[g]||[],false);
+  pSel('gear-amp',DB.amps[g]||[],false);
+  pSel('gear-keys',DB.keys[g]||[],false);
+  pSel('gear-reverb',DB.reverbs[g]||[],false);
+  pSel('gear-delay',DB.delays[g]||[],false);
+  pSel('gear-mod',DB.mods[g]||[],false);
+  pSel('gear-drive',DB.drives[g]||[],false);
+  pSel('gear-comp',DB.comps[g]||[],false);
+  pSel('gear-drum',DB.drums[g]||[],false);
+  ['B','C','D'].forEach(d=>pSel('disc-'+d+'-source',DB.discSources[g]||[],false));
+}
+
+function toggleDiscE(){
+  const enabled=document.getElementById('disc-e-enabled').checked;
+  document.getElementById('disc-e-config').style.display=enabled?'block':'none';
+  const label=document.getElementById('disc-e-label');
+  if(label)label.style.opacity=enabled?'1':'0.4';
+}
+
+function updateScratchStyle(){
+  const style=document.getElementById('disc-e-style').value;
+  const preset=SCRATCH_STYLES[style];
+  selectedScratches.length=0;
+  if(style!=='custom')preset.techniques.forEach(t=>selectedScratches.push(t));
+  const allTechs=[...new Set([...DB.scratches,...Object.values(SCRATCH_STYLES).flatMap(s=>s.techniques)])];
+  makePills('scratch-pills',allTechs,selectedScratches,false);
+}
+
+function v(id){const e=document.getElementById(id);return e?e.value:'';}
+
+function countEntries(){
+  let n=0;
+  ['studios','engineers','producers','consoles','tapes','preamps','basses','amps','keys','reverbs','delays','mods','drives','comps','drums','discSources'].forEach(k=>{
+    Object.values(DB[k]).forEach(arr=>n+=arr.length);
+  });
+  return n;
+}
+
+function generate(){
+  const s1=v('studio-primary'),s2=v('studio-secondary');
+  const eng=v('engineer'),prod=v('producer');
+  const con=v('gear-console'),tape=v('gear-tape'),preamp=v('gear-preamp');
+  const bass=v('gear-bass'),amp=v('gear-amp'),keys=v('gear-keys');
+  const rev=v('gear-reverb'),del=v('gear-delay'),mod=v('gear-mod');
+  const drv=v('gear-drive'),comp=v('gear-comp'),drum=v('gear-drum');
+  const dB=v('disc-B-source'),dBn=v('disc-B-note');
+  const dC=v('disc-C-source'),dCn=v('disc-C-note');
+  const dD=v('disc-D-source'),dDn=v('disc-D-note');
+  const scale=v('hook-scale'),intv=v('hook-interval');
+  const call=v('hook-call'),resp=v('hook-response'),tens=v('hook-tension');
+  const title=v('title-input')||'Untitled';
+  const theme=v('theme-input')||'to_be_defined';
+  const discEEnabled=document.getElementById('disc-e-enabled').checked;
+  const discEStyleKey=document.getElementById('disc-e-style').value;
+  const discELabel=SCRATCH_STYLES[discEStyleKey].label;
+  const scratches=selectedScratches.length?selectedScratches.join(', '):'crab-scratch, chirp, flare, transformer, baby-scratch';
+  const discEStyleBlock=discEEnabled?`[Disc_E: ${discELabel} —\n${scratches}]`:'';
+  const discERouting=discEEnabled?`Disc_E → scratch_bus → ${del}_wet_return`:'';
+  const discEScratchBed=discEEnabled?`[Scratch_Bed_Continuous: ${selectedEdits.length?selectedEdits.join(', '):'tape_splice_cut, bit_crush_stutter, dropout_flutter'} — running_under_all_sections]`:`[Edit_Bed_Continuous: ${selectedEdits.length?selectedEdits.join(', '):'tape_splice_cut, bit_crush_stutter, dropout_flutter'} — running_under_all_sections]`;
+  const textures=selectedTextures.length?selectedTextures.join(', '):'drone_pad_slow_attack, sustained_feedback';
+  const edits=selectedEdits.length?selectedEdits.join(', '):'tape_splice_cut, bit_crush_stutter, dropout_flutter';
+  const excls=[...selectedExclGenre,...selectedExclMood,...selectedExclInst].map(e=>'-'+e).join(' ');
+  const structs=selectedStructure.length?selectedStructure:DB.structures;
+
+  const style=`[SESSION: ${s1}${s2?` —\nsecondary_room: ${s2}`:''}]
+[Engineer: ${eng} — ${prod}]
+[Gear: ${con}, ${tape}, ${preamp},
+${amp}, ${drum}, ${keys},
+${rev}, ${del}, ${mod},
+${drv}, ${comp}, ${bass}]
+[Disc_A: In-Context_Vocal_Samples]
+[Disc_B: ${dB}${dBn?' — '+dBn:''}]
+[Disc_C: ${dC}${dCn?' — '+dCn:''}]
+[Disc_D: ${dD}${dDn?' — '+dDn:''}]${discEStyleBlock?'\n'+discEStyleBlock:''}
+[Hook: ${scale}, ${intv},
+${call}, ${resp}, ${tens}]
+[Bass: ${bass}]
+[Texture: ${textures}]
+[Edit_Bed: ${edits}]
+${excls}`.trim();
+
+  const lyrics=`[SESSION: ${s1}]
+[TITLE: ${title}]
+[THEME: ${theme}]
+[Disc_A: In-Context_Vocal_Samples]
+[Disc_B: ${dB}]
+[Disc_C: ${dC}]
+[Disc_D: ${dD}]${discEStyleBlock?'\n'+discEStyleBlock:''}
+
+[ROUTING:
+Disc_A → clean_return → ${rev}
+Disc_B → primary_bus → ${del}
+Disc_C → secondary_bus → ${rev}
+Disc_D → tertiary_bus → ${mod}${discERouting?'\n'+discERouting:''}
+Edit_palette → continuous_all_buses
+All_buses → ${con} → ${tape}]
+
+${discEScratchBed}
+
+`+structs.map(s=>`[${s}: 0%_lyrics — ${s}_routing]`).join('\n');
+
+  const sEl=document.getElementById('style-out');
+  const lEl=document.getElementById('lyrics-out');
+  sEl.textContent=style;
+  lEl.textContent=lyrics;
+  document.getElementById('output-area').style.display='block';
+  const sc=style.length,lc=lyrics.length;
+  const sCt=document.getElementById('style-count');
+  const lCt=document.getElementById('lyrics-count');
+  sCt.textContent=sc+'/1000';
+  sCt.className='char-count'+(sc>1000?' over':sc>900?' warn':'');
+  lCt.textContent=lc+'/3000';
+  lCt.className='char-count'+(lc>3000?' over':lc>2700?' warn':'');
+}
+
+function copyOut(id,btnId){
+  const text=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById(btnId);
+    btn.textContent='copied';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500);
+  }).catch(()=>{
+    const range=document.createRange();
+    range.selectNode(document.getElementById(id));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+  });
+}
+
+function init(){
+  buildGenrePills();
+  pSel('hook-scale',DB.scales,false);
+  pSel('hook-interval',DB.intervals,false);
+  pSel('hook-call',DB.calls,false);
+  pSel('hook-response',DB.responses,false);
+  pSel('hook-tension',DB.tensions,false);
+  makePills('texture-pills',DB.textures,selectedTextures,false);
+  makePills('edit-pills',DB.edits,selectedEdits,false);
+  makePills('excl-genre-pills',DB.exclGenres,selectedExclGenre,true);
+  makePills('excl-mood-pills',DB.exclMoods,selectedExclMood,true);
+  makePills('excl-inst-pills',DB.exclInsts,selectedExclInst,true);
+  buildDiscRows();
+  buildStructureChecks();
+  updateForGenre();
+  updateScratchStyle();
+  const total=countEntries();
+  const stat=document.getElementById('db-stat');
+  if(stat)stat.textContent=`${DB.genres.length} genres — ${total.toLocaleString()} database entries`;
+}
+
+init();
+</script>
+</body>
+</html>
