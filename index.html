@@ -989,7 +989,13 @@ function updateForGenre(){
   pSel('gear-drive',DB.drives[g]||[],false);
   pSel('gear-comp',DB.comps[g]||[],false);
   pSel('gear-drum',DB.drums[g]||[],false);
-  ['B','C','D'].forEach(d=>pSel('disc-'+d+'-source',DB.discSources[g]||[],false));
+  ['B','C','D'].forEach((d,i)=>{
+    const src=DB.discSources[g]||[];
+    pSel('disc-'+d+'-source',src,false);
+    // Default each disc to a different source so B/C/D don't all repeat the first one
+    const el=document.getElementById('disc-'+d+'-source');
+    if(el&&src.length>i)el.selectedIndex=i;
+  });
 }
 
 function toggleDiscE(){
@@ -1037,6 +1043,9 @@ function generate(){
   const discELabel=SCRATCH_STYLES[discEStyleKey].label;
   const scratches=selectedScratches.length?selectedScratches.join(', '):'crab-scratch, chirp, flare, transformer, baby-scratch';
   const discEStyleBlock=discEEnabled?`[Disc_E: ${discELabel} —\n${scratches}]`:'';
+  // Style field has a 1000-char limit: list at most 5 techniques there; the lyrics field carries the full list
+  const styleScratches=selectedScratches.length>5?selectedScratches.slice(0,5).join(', '):scratches;
+  const discEStyleShort=discEEnabled?`[Disc_E: ${discELabel} —\n${styleScratches}]`:'';
   const discERouting=discEEnabled?`Disc_E → scratch_bus → ${del}_wet_return`:'';
   const discEScratchBed=discEEnabled?`[Scratch_Bed_Continuous: ${selectedEdits.length?selectedEdits.join(', '):'tape_splice_cut, bit_crush_stutter, dropout_flutter'} — running_under_all_sections]`:`[Edit_Bed_Continuous: ${selectedEdits.length?selectedEdits.join(', '):'tape_splice_cut, bit_crush_stutter, dropout_flutter'} — running_under_all_sections]`;
   const textures=selectedTextures.length?selectedTextures.join(', '):'drone_pad_slow_attack, sustained_feedback';
@@ -1049,11 +1058,11 @@ function generate(){
 [Gear: ${con}, ${tape}, ${preamp},
 ${amp}, ${drum}, ${keys},
 ${rev}, ${del}, ${mod},
-${drv}, ${comp}, ${bass}]
+${drv}, ${comp}]
 [Disc_A: In-Context_Vocal_Samples]
 [Disc_B: ${dB}${dBn?' — '+dBn:''}]
 [Disc_C: ${dC}${dCn?' — '+dCn:''}]
-[Disc_D: ${dD}${dDn?' — '+dDn:''}]${discEStyleBlock?'\n'+discEStyleBlock:''}
+[Disc_D: ${dD}${dDn?' — '+dDn:''}]${discEStyleShort?'\n'+discEStyleShort:''}
 [Hook: ${scale}, ${intv},
 ${call}, ${resp}, ${tens}]
 [Bass: ${bass}]
