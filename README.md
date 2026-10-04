@@ -28,13 +28,13 @@ mixing console, a real studio, a known engineer or producer — Suno
 pattern-matches against that training data and pulls the associated sonic 
 characteristics rather than interpreting a generic description.
 
-The result is more precise and consistent genre targeting than plain 
-language prompting achieves.
+In my testing, the result is more precise and consistent genre targeting 
+than plain language prompting achieves.
 
-**Validated:** An audio engineer listening blind to Suno output generated 
-using this technique identified the SSL 4000G console by ear from the 
-sound alone. The gear database is not cosmetic — it influences output at 
-a level trained professionals can hear.
+**Anecdotal evidence:** In one informal blind listen, an audio engineer 
+identified the SSL 4000G console by ear from Suno output generated with 
+this technique. That's a single data point, not a controlled test, but it 
+suggests the gear references can influence output audibly.
 
 ---
 
@@ -47,7 +47,7 @@ runtime.
 ### Features
 
 - **32 genres** with fully filtered databases per genre
-- **1,500+ database entries** covering real recording history
+- **1,200+ unique database entries** covering real recording history
 - Studios, engineers, producers — all genre-matched to real recording history
 - Full signal chain: console, tape machine, preamp, amplifier, keys/synth, 
   drum machine, reverb, delay, modulation, drive, compression, bass
@@ -135,7 +135,7 @@ technique with a genre-filtered database of real recording history, making
 Session Doc Prompting accessible without requiring deep knowledge of studio 
 gear and production history.
 
-As of April 2026, this is the only publicly available tool built around 
+As of April 2026, I'm not aware of any other public tool built around 
 Session Doc Prompting methodology.
 
 ---
